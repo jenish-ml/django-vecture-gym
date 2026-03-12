@@ -1,0 +1,75 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div class="topbar" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 0;">Manage Plans & Goals</h3>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+    <!-- Memberships -->
+    <div class="card">
+        <h4 style="margin-bottom: 1rem; display: flex; justify-content: space-between;">
+            Membership Plans <a href="{% url 'dashboard:admin_membership_add' %}" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">+ Add</a>
+        </h4>
+        <ul style="list-style: none; padding: 0;">
+            {% for plan in memberships %}
+            <li style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 0.8rem 0; display: flex; justify-content: space-between;">
+                <span>{{ plan.name }} (&#8377;{{ plan.price }})</span>
+                <div>
+                    <a href="{% url 'dashboard:admin_membership_edit' plan.id %}" style="color: var(--primary); margin-right: 0.5rem;">Edit</a>
+                    <form method="POST" action="{% url 'dashboard:admin_membership_delete' plan.id %}" style="display:inline;" onsubmit="return confirm('Delete this Membership?');">
+                        {% csrf_token %}<button type="submit" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:0;">Del</button>
+                    </form>
+                </div>
+            </li>
+            {% empty %}
+            <li>No plans found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Nutrition Plans -->
+    <div class="card">
+        <h4 style="margin-bottom: 1rem; display: flex; justify-content: space-between;">
+            Nutrition Plans <a href="{% url 'dashboard:admin_nutrition_add' %}" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">+ Add</a>
+        </h4>
+        <ul style="list-style: none; padding: 0;">
+            {% for plan in nutritions %}
+            <li style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 0.8rem 0; display: flex; justify-content: space-between;">
+                <span>{{ plan.name }}</span>
+                <div>
+                    <a href="{% url 'dashboard:admin_nutrition_edit' plan.id %}" style="color: var(--primary); margin-right: 0.5rem;">Edit</a>
+                    <form method="POST" action="{% url 'dashboard:admin_nutrition_delete' plan.id %}" style="display:inline;" onsubmit="return confirm('Delete this Nutrition plan?');">
+                        {% csrf_token %}<button type="submit" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:0;">Del</button>
+                    </form>
+                </div>
+            </li>
+            {% empty %}
+            <li>No nutrition plans found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Gym Goals -->
+    <div class="card">
+        <h4 style="margin-bottom: 1rem; display: flex; justify-content: space-between;">
+            Gym Goals <a href="{% url 'dashboard:admin_goal_add' %}" class="btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">+ Add</a>
+        </h4>
+        <ul style="list-style: none; padding: 0;">
+            {% for goal in goals %}
+            <li style="border-bottom: 1px solid rgba(255,255,255,0.1); padding: 0.8rem 0; display: flex; justify-content: space-between;">
+                <span>{{ goal.name }}</span>
+                <div>
+                    <a href="{% url 'dashboard:admin_goal_edit' goal.id %}" style="color: var(--primary); margin-right: 0.5rem;">Edit</a>
+                    <form method="POST" action="{% url 'dashboard:admin_goal_delete' goal.id %}" style="display:inline;" onsubmit="return confirm('Delete this Goal?');">
+                        {% csrf_token %}<button type="submit" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:0;">Del</button>
+                    </form>
+                </div>
+            </li>
+            {% empty %}
+            <li>No goals found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

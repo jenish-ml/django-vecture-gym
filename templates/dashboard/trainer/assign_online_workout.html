@@ -1,0 +1,301 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block extra_css %}
+<style>
+    .assign-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .assign-header h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: var(--text-light);
+    }
+    .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f0f4ff 0%, #fdf4ff 100%);
+        border-radius: 14px;
+        border: 1.5px solid #ddd6fe;
+    }
+    .meta-field label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #7c3aed;
+        margin-bottom: 0.45rem;
+    }
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.25rem;
+        padding: 0.75rem 1rem;
+        background: linear-gradient(90deg, #fff1f5, #fdf8ff);
+        border-radius: 10px;
+        border: 1px solid #fde4ec;
+    }
+    .section-header h4 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .session-card {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+        background: #fff;
+        transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .session-card:hover {
+        box-shadow: 0 6px 24px rgba(255,51,102,0.08);
+        border-color: var(--primary);
+    }
+    .session-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.9rem 1.25rem;
+        background: linear-gradient(90deg, #fff1f5 0%, #fdf4ff 100%);
+        border-bottom: 1.5px solid #fde4ec;
+    }
+    .session-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .session-card-header h5 {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--text-light);
+        font-weight: 700;
+    }
+    .session-card-body {
+        padding: 1.25rem;
+    }
+    .field-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .field-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    .field-item label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .field-item label .hint {
+        font-weight: 400;
+        text-transform: none;
+        font-size: 0.75rem;
+        color: #94a3b8;
+    }
+    .field-full {
+        margin-bottom: 1rem;
+    }
+    .field-full label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 0.4rem;
+    }
+    .submit-zone {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+    .counter-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        font-size: 0.75rem;
+        font-weight: 800;
+    }
+    @media (max-width: 640px) {
+        .meta-grid { grid-template-columns: 1fr; }
+        .field-grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="assign-header">
+    <h3>🏋️ {{ title }} <span style="font-size:0.85rem; color:#94a3b8; font-weight:500;">(Online Member)</span></h3>
+    <a href="{% url 'dashboard:trainer_dashboard' %}" class="btn btn-outline">← Back</a>
+</div>
+
+<form method="POST" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    <!-- Member & Week -->
+    <div class="meta-grid">
+        <div class="meta-field">
+            <label>👤 Member <span style="color:#94a3b8; text-transform:none; font-weight:400;">(Online only)</span></label>
+            {{ form.member }}
+            {% if form.member.errors %}<span style="color:#ef4444; font-size:0.82rem; display:block; margin-top:0.3rem;">{{ form.member.errors|striptags }}</span>{% endif %}
+        </div>
+        <div class="meta-field">
+            <label>📅 Week Starting</label>
+            {{ form.week_start_date }}
+            {% if form.week_start_date.errors %}<span style="color:#ef4444; font-size:0.82rem; display:block; margin-top:0.3rem;">{{ form.week_start_date.errors|striptags }}</span>{% endif %}
+        </div>
+    </div>
+
+    <!-- Sessions Section -->
+    <div class="section-header">
+        <h4>🗓️ Sessions <span class="counter-badge" id="session-counter">{% if formset %}{{ formset|length }}{% else %}1{% endif %}</span></h4>
+        <button type="button" class="btn" id="add-session-btn" style="padding: 0.4rem 1.1rem; font-size: 0.85rem;">+ Add Session</button>
+    </div>
+
+    <div id="formset-container">
+        {{ formset.management_form }}
+
+        {% for session_form in formset %}
+        <div class="session-card">
+            <div class="session-card-header">
+                <div class="session-number">{{ forloop.counter }}</div>
+                <h5>Session {{ forloop.counter }}</h5>
+                <span style="margin-left:auto; font-size:0.8rem; color:#94a3b8;">Day {{ session_form.day_of_week.value|default:"?" }}</span>
+            </div>
+            <div class="session-card-body">
+                <div class="field-grid-2">
+                    <div class="field-item">
+                        <label>Day of Week</label>
+                        {{ session_form.day_of_week }}
+                        {% if session_form.day_of_week.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ session_form.day_of_week.errors|striptags }}</span>{% endif %}
+                    </div>
+                    <div class="field-item">
+                        <label>Start Time <span class="hint">(optional)</span></label>
+                        {{ session_form.time_slot }}
+                        {% if session_form.time_slot.errors %}<span style="color:#ef4444; font-size:0.78rem;">{{ session_form.time_slot.errors|striptags }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="field-full">
+                    <label>Workout Title</label>
+                    {{ session_form.title }}
+                    {% if session_form.title.errors %}<span style="color:#ef4444; font-size:0.78rem; display:block; margin-top:0.2rem;">{{ session_form.title.errors|striptags }}</span>{% endif %}
+                </div>
+
+                <div class="field-full">
+                    <label>Notes &amp; Exercises <span style="font-weight:400; text-transform:none; font-size:0.75rem; color:#94a3b8;">(use • for bullet points)</span></label>
+                    {{ session_form.notes }}
+                    {% if session_form.notes.errors %}<span style="color:#ef4444; font-size:0.78rem; display:block; margin-top:0.2rem;">{{ session_form.notes.errors|striptags }}</span>{% endif %}
+                </div>
+
+                <div class="field-item">
+                    <label>Video Upload <span class="hint">(optional)</span></label>
+                    {{ session_form.video }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Empty form clone (hidden) -->
+        <div id="empty-form" style="display:none;">
+            <div class="session-card">
+                <div class="session-card-header">
+                    <div class="session-number">N</div>
+                    <h5>New Session</h5>
+                </div>
+                <div class="session-card-body">
+                    <div class="field-grid-2">
+                        <div class="field-item">
+                            <label>Day of Week</label>{{ formset.empty_form.day_of_week }}
+                        </div>
+                        <div class="field-item">
+                            <label>Start Time</label>{{ formset.empty_form.time_slot }}
+                        </div>
+                    </div>
+                    <div class="field-full">
+                        <label>Workout Title</label>{{ formset.empty_form.title }}
+                    </div>
+                    <div class="field-full">
+                        <label>Notes &amp; Exercises</label>{{ formset.empty_form.notes }}
+                    </div>
+                    <div class="field-item">
+                        <label>Video Upload</label>{{ formset.empty_form.video }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="submit-zone">
+        <a href="{% url 'dashboard:trainer_dashboard' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn" style="padding: 0.85rem 2.5rem; font-size: 1rem;">
+            💾 Assign Workout Plan
+        </button>
+    </div>
+</form>
+
+<script>
+    let sessionCount = parseInt(document.getElementById('id_sessions-TOTAL_FORMS').value);
+    const counter = document.getElementById('session-counter');
+
+    document.getElementById('add-session-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const totalInput = document.getElementById('id_sessions-TOTAL_FORMS');
+        const newHtml = document.getElementById('empty-form').innerHTML
+            .replace(/__prefix__/g, sessionCount);
+
+        document.getElementById('formset-container').insertAdjacentHTML('beforeend', newHtml);
+        sessionCount++;
+        totalInput.value = sessionCount;
+        counter.textContent = sessionCount;
+
+        // Update the new card's header number
+        const cards = document.querySelectorAll('#formset-container .session-card:not(#empty-form .session-card)');
+        const lastCard = cards[cards.length - 1];
+        if (lastCard) {
+            const numEl = lastCard.querySelector('.session-number');
+            const titleEl = lastCard.querySelector('.session-card-header h5');
+            if (numEl) numEl.textContent = sessionCount;
+            if (titleEl) titleEl.textContent = 'Session ' + sessionCount;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 4rem auto; padding: 0 5%;">
+    <div style="background: var(--bg-card); border-radius: 20px; padding: 3rem; display: flex; gap: 3rem; flex-wrap: wrap; box-shadow: 0 15px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);">
+        
+        <div style="flex: 1; min-width: 250px; text-align: center;">
+            {% if trainer.profile.image %}
+                <img src="{{ trainer.profile.image.url }}" alt="{{ trainer.username }}" style="border-radius: 50%; border: 5px solid var(--primary); margin-bottom: 1.5rem; width: 250px; height: 250px; object-fit: cover;">
+            {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ trainer.username }}&background=random&size=250" alt="{{ trainer.username }}" style="border-radius: 50%; border: 5px solid var(--primary); margin-bottom: 1.5rem; width: 250px; height: 250px; object-fit: cover;">
+            {% endif %}
+            <h2 style="font-size: 2.5rem; margin-bottom: 0.5rem;">{{ trainer.username|title }}</h2>
+            <p style="font-size: 1.2rem; color: var(--primary); font-weight: 600;">Head Coach</p>
+            {% if trainer.phone_no %}
+                <p style="color: var(--text-muted); margin-top: 1rem;">📞 {{ trainer.phone_no }}</p>
+            {% endif %}
+            <p style="color: var(--text-muted);">✉️ {{ trainer.email|default:"Not provided" }}</p>
+            
+            <a href="{% url 'accounts:register' %}?trainer={{ trainer.id }}" class="btn" style="margin-top: 2rem; width: 100%;">Assign as My Trainer</a>
+        </div>
+
+        <div style="flex: 2; min-width: 300px;">
+            <h3 style="font-size: 1.8rem; margin-bottom: 1.5rem; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">About Me</h3>
+            <p style="color: var(--text-light); line-height: 1.8; margin-bottom: 2rem;">
+                Hi, I'm {{ trainer.username|title }}. I am passionate about helping you achieve your fitness goals through tailored workout plans and sustainable nutrition advice. I believe in a holistic approach to fitness that emphasizes both physical strength and mental resilience.
+            </p>
+
+            <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Specialties</h3>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                <span style="background: rgba(255, 51, 102, 0.1); color: var(--primary); padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">Strength Training</span>
+                <span style="background: rgba(255, 51, 102, 0.1); color: var(--primary); padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">Weight Loss</span>
+                <span style="background: rgba(255, 51, 102, 0.1); color: var(--primary); padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">Nutrition</span>
+            </div>
+
+            <a href="{% url 'core:trainers_list' %}" style="display: inline-block; color: var(--text-muted); text-decoration: none; border-bottom: 1px dotted var(--text-muted);">&larr; Back to Trainers</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

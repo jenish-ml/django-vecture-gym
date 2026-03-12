@@ -1,0 +1,131 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block extra_css %}
+<style>
+    .nutrition-hero {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+        border: 1.5px solid #a7f3d0;
+        border-radius: 18px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    .nutrition-hero-icon {
+        font-size: 3.5rem;
+        width: 80px; height: 80px;
+        background: white;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 14px rgba(16,185,129,0.15);
+        flex-shrink: 0;
+    }
+    .nutrition-hero-info h2 { margin: 0 0 0.3rem; color: #065f46; font-size: 1.4rem; }
+    .nutrition-hero-info p  { margin: 0; color: #64748b; font-size: 0.9rem; }
+
+    .nutrition-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .nutrition-meta-card {
+        background: white;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+    }
+    .nutrition-meta-card .label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #94a3b8;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+    .nutrition-meta-card .value {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1e293b;
+    }
+
+    .details-section h3 {
+        font-size: 1rem;
+        color: #065f46;
+        margin-bottom: 1rem;
+        display: flex; align-items: center; gap: 0.5rem;
+    }
+    .details-box {
+        background: white;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 1.5rem;
+        font-size: 0.95rem;
+        line-height: 1.9;
+        color: #334155;
+    }
+    .empty-box {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #94a3b8;
+    }
+    .empty-box .empty-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .empty-box p { font-size: 0.95rem; }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+
+{% if profile.nutrition_plan %}
+
+    <!-- Hero card -->
+    <div class="nutrition-hero">
+        <div class="nutrition-hero-icon">🥗</div>
+        <div class="nutrition-hero-info">
+            <h2>{{ profile.nutrition_plan.name }}</h2>
+            <p>{{ profile.nutrition_plan.description|default:"Your personalised nutrition plan assigned by your trainer." }}</p>
+        </div>
+    </div>
+
+    <!-- Meta info -->
+    <div class="nutrition-meta">
+        <div class="nutrition-meta-card">
+            <div class="label">Trainer</div>
+            <div class="value">{{ profile.trainer.get_full_name|default:profile.trainer.username|default:"N/A"|title }}</div>
+        </div>
+        <div class="nutrition-meta-card">
+            <div class="label">Fitness Goal</div>
+            <div class="value">{{ profile.fitness_goal.name|default:"N/A" }}</div>
+        </div>
+        <div class="nutrition-meta-card">
+            <div class="label">Plan Type</div>
+            <div class="value">🥗 Nutrition</div>
+        </div>
+        <div class="nutrition-meta-card">
+            <div class="label">Membership</div>
+            <div class="value">{{ profile.membership_plan.name|default:"N/A" }}</div>
+        </div>
+    </div>
+
+    <!-- Plan details -->
+    {% if profile.nutrition_plan.plan_details %}
+    <div class="details-section">
+        <h3>📋 Plan Details</h3>
+        <div class="details-box">
+            {{ profile.nutrition_plan.plan_details|linebreaks }}
+        </div>
+    </div>
+    {% endif %}
+
+{% else %}
+
+    <div class="empty-box">
+        <div class="empty-icon">🥗</div>
+        <p>No nutrition plan assigned yet.</p>
+        <p style="margin-top: 0.3rem; font-size:0.85rem;">Your trainer will assign one soon. Contact admin if this takes too long.</p>
+    </div>
+
+{% endif %}
+
+{% endblock %}

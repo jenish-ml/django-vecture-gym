@@ -1,0 +1,37 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div class="topbar" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 0; color: var(--text-light);">🥗 Assign Diet Plan (Offline Members)</h3>
+    <a href="{% url 'dashboard:trainer_dashboard' %}" class="btn btn-outline">← Back</a>
+</div>
+
+<div style="max-width: 700px;">
+    <div class="card">
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display:block; margin-bottom:0.4rem; font-weight:600; color:#334155;">Select Member <span style="color:var(--primary);">*</span></label>
+                {{ form.member }}
+                {% if form.member.errors %}<span style="color:#ef4444; font-size:0.85rem;">{{ form.member.errors|striptags }}</span>{% endif %}
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display:block; margin-bottom:0.4rem; font-weight:600; color:#334155;">Duration (Months) <span style="color:var(--primary);">*</span></label>
+                {{ form.duration_months }}
+                {% if form.duration_months.errors %}<span style="color:#ef4444; font-size:0.85rem;">{{ form.duration_months.errors|striptags }}</span>{% endif %}
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display:block; margin-bottom:0.4rem; font-weight:600; color:#334155;">Detailed Diet Plan <span style="color:var(--primary);">*</span></label>
+                <p style="font-size:0.82rem; color:#64748b; margin-bottom:0.5rem;">Include daily meals, macros breakdown, and any specific dietary restrictions.</p>
+                {{ form.detailed_plan }}
+                {% if form.detailed_plan.errors %}<span style="color:#ef4444; font-size:0.85rem;">{{ form.detailed_plan.errors|striptags }}</span>{% endif %}
+            </div>
+
+            <button type="submit" class="btn" style="width:100%; padding:1rem; font-size:1rem;">Save Diet Plan</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid var(--primary);">
+    <h3 style="color: var(--text-muted); font-size: 1rem;">Total Assigned Members</h3>
+    <p style="font-size: 2.5rem; font-weight: bold; margin-top: 0.5rem;">{{ member_count }}</p>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem;">My Assigned Members</h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Member Type</th>
+                    <th>Goal</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in assigned_members %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.first_name }} {{ user.last_name }}</td>
+                    <td>{{ user.get_member_type_display|default:"Offline" }}</td>
+                    <td>{{ user.profile.fitness_goal.name|default:"N/A" }}</td>
+                    <td>
+                        <a href="{% url 'dashboard:view_member_progress' user.id %}" class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;">View Progress</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">You have no assigned members yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

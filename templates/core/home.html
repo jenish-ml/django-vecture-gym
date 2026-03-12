@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    /* Hero Carousel (CSS Only trick for simplicity or JS based) */
+    .hero {
+        position: relative;
+        height: 80vh;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .hero-bg {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        z-index: -1;
+        animation: pulse 20s infinite alternate;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.1); }
+    }
+
+    .hero-content h1 {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .hero-content h1 span {
+        color: var(--primary);
+    }
+
+    .hero-content p {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Cards Setup */
+    section {
+        padding: 5rem 5%;
+    }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .card {
+        background: var(--bg-card);
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        transition: transform 0.3s;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .card:hover {
+        transform: translateY(-10px);
+        border-color: var(--primary);
+    }
+
+    .card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .price {
+        font-size: 2.5rem;
+        color: var(--primary);
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+
+    .champions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .champion-card {
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .champion-card img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s;
+    }
+
+    .champion-card:hover img {
+        transform: scale(1.05);
+    }
+
+    .champion-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(transparent, rgba(0,0,0,0.9));
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+        <h1>Transform <span>Your Body</span></h1>
+        <p>Push your limits, achieve your goals, and become the best version of yourself with Vecture.</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard:dashboard_home' %}" class="btn">Go to Dashboard</a>
+        {% else %}
+            <div style="margin-top: 3rem;">
+                <a href="{% url 'accounts:login' %}" class="btn">Start Your Journey</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<section id="plans">
+    <h2 class="section-title">Membership <span>Plans</span></h2>
+    <div class="grid-3">
+        {% for plan in membership_plans %}
+        <div class="card">
+            <h3>{{ plan.name }}</h3>
+            <div class="price">&#8377;{{ plan.price }}</div>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">{{ plan.description }}</p>
+            <p>Duration: {{ plan.duration_months }} Months</p>
+            <br>
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard:dashboard_home' %}" class="btn btn-outline" style="width: 100%">Update in Dashboard</a>
+            {% else %}
+                <a href="{% url 'accounts:register' %}" class="btn btn-outline" style="width: 100%">Choose Plan</a>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p style="text-align:center; grid-column: 1/-1;">Plans coming soon.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section id="nutrition" style="background-color: var(--bg-card);">
+    <h2 class="section-title">Nutrition <span>Programs</span></h2>
+    <div class="grid-3">
+        {% for plan in nutrition_plans %}
+        <div class="card" style="background: var(--bg-dark);">
+            <h3>{{ plan.name }}</h3>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">{{ plan.description }}</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard:dashboard_home' %}" class="btn" style="width: 100%">View in Dashboard</a>
+            {% else %}
+                <a href="{% url 'accounts:register' %}" class="btn" style="width: 100%">Learn More</a>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p style="text-align:center; grid-column: 1/-1;">Programs coming soon.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<section id="videos">
+    <h2 class="section-title">Featured <span>Workouts</span></h2>
+    <div class="grid-3">
+        <!-- Static Youtube Embeds -->
+        <div class="card" style="padding:0; overflow:hidden;">
+            <iframe width="100%" height="250" src="https://www.youtube.com/embed/cbKkB3OAUGs" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+            <iframe width="100%" height="250" src="https://www.youtube.com/embed/UBMk30rjy0o" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+            <iframe width="100%" height="250" src="https://www.youtube.com/embed/enYITYwvPAQ" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+</section>
+
+<section id="champions">
+    <h2 class="section-title">Our <span>Champions</span></h2>
+    <div class="champions-grid">
+        <div class="champion-card">
+            <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=1470&auto=format&fit=crop" alt="Champion 1">
+            <div class="champion-info">
+                <h3>Mike Johnson</h3>
+                <p>Lost 20kg in 6 months</p>
+            </div>
+        </div>
+        <div class="champion-card">
+            <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1470&auto=format&fit=crop" alt="Champion 2">
+            <div class="champion-info">
+                <h3>Sarah Connor</h3>
+                <p>Powerlifting State Champ</p>
+            </div>
+        </div>
+        <div class="champion-card">
+            <img src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=1469&auto=format&fit=crop" alt="Champion 3">
+            <div class="champion-info">
+                <h3>David Lee</h3>
+                <p>Muscle Building Pro</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

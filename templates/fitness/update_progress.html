@@ -1,0 +1,38 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div style="max-width: 640px; margin: 0 auto;">
+    <div class="topbar" style="margin-bottom: 2rem;">
+        <h3 style="color: var(--text-light);">📊 Log Your Progress</h3>
+        <a href="{% url 'dashboard:member_dashboard' %}" class="btn btn-outline">← Dashboard</a>
+    </div>
+    <div class="card">
+        <form method="POST" action="{% url 'fitness:update_progress' %}" novalidate>
+            {% csrf_token %}
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.4rem; font-weight: 600; color: #334155; font-size: 0.9rem;">Current Weight (kg) <span style="color: var(--primary);">*</span></label>
+                <input type="number" step="0.1" min="20" max="300" name="weight" required placeholder="e.g. 72.5">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.4rem; font-weight: 600; color: #334155; font-size: 0.9rem;">Body Fat % <span style="color: #94a3b8; font-weight: 400;">(Optional)</span></label>
+                    <input type="number" step="0.1" min="1" max="70" name="body_fat" placeholder="e.g. 18.5">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.4rem; font-weight: 600; color: #334155; font-size: 0.9rem;">Muscle Mass (kg) <span style="color: #94a3b8; font-weight: 400;">(Optional)</span></label>
+                    <input type="number" step="0.1" min="10" max="150" name="muscle_mass" placeholder="e.g. 42.0">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.4rem; font-weight: 600; color: #334155; font-size: 0.9rem;">Notes / How do you feel?</label>
+                <textarea name="notes" rows="4" placeholder="Write your notes here... (feeling strong, sore, etc.)"></textarea>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; padding: 1rem; font-size: 1rem;">Save Progress</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

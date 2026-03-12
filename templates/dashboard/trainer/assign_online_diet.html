@@ -1,0 +1,129 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block extra_css %}
+<style>
+    .form-section-card {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .form-section-card h5 {
+        margin: 0 0 1rem 0;
+        color: var(--primary);
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    .field-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="topbar" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 0; color: var(--text-light);">🥗 {{ title }}</h3>
+    <a href="{% url 'dashboard:trainer_dashboard' %}" class="btn btn-outline">← Back</a>
+</div>
+
+<div class="card" style="max-width: 900px; margin: 0 auto;">
+    <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <!-- Header: Member & Week -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 2rem;">
+            <div class="field-group">
+                <label>{{ form.member.label }} <span style="color:#94a3b8; font-weight:400;">(Online Members Only)</span></label>
+                {{ form.member }}
+                {% if form.member.errors %}
+                <span style="color:#ef4444; font-size:0.82rem;">{{ form.member.errors|striptags }}</span>
+                {% endif %}
+            </div>
+            <div class="field-group">
+                <label>{{ form.week_start_date.label }}</label>
+                {{ form.week_start_date }}
+                {% if form.week_start_date.errors %}
+                <span style="color:#ef4444; font-size:0.82rem;">{{ form.week_start_date.errors|striptags }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Meals Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h4 style="margin: 0; color: var(--text-light);">🍽️ Meals <span class="badge bg-warning" id="meal-counter">1</span></h4>
+            <button type="button" class="btn" id="add-meal-btn" style="padding: 0.4rem 1rem; font-size: 0.85rem;">+ Add Meal</button>
+        </div>
+
+        <div id="formset-container">
+            {{ formset.management_form }}
+            {% for meal_form in formset %}
+            <div class="form-section-card meal-form">
+                <h5>🥗 Meal {{ forloop.counter }}</h5>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="field-group">
+                        <label>Day of Week</label>
+                        {{ meal_form.day_of_week }}
+                        {% if meal_form.day_of_week.errors %}<span style="color:#ef4444; font-size:0.8rem;">{{ meal_form.day_of_week.errors|striptags }}</span>{% endif %}
+                    </div>
+                    <div class="field-group">
+                        <label>Meal Type</label>
+                        {{ meal_form.meal_type }}
+                        {% if meal_form.meal_type.errors %}<span style="color:#ef4444; font-size:0.8rem;">{{ meal_form.meal_type.errors|striptags }}</span>{% endif %}
+                    </div>
+                    <div class="field-group">
+                        <label>Time Slot</label>
+                        {{ meal_form.time_slot }}
+                        {% if meal_form.time_slot.errors %}<span style="color:#ef4444; font-size:0.8rem;">{{ meal_form.time_slot.errors|striptags }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label>Description / Food Items</label>
+                    {{ meal_form.description }}
+                    {% if meal_form.description.errors %}<span style="color:#ef4444; font-size:0.8rem;">{{ meal_form.description.errors|striptags }}</span>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Empty form template (hidden) -->
+            <div id="empty-form" style="display:none;">
+                <div class="form-section-card meal-form">
+                    <h5>🥗 New Meal</h5>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div class="field-group"><label>Day of Week</label>{{ formset.empty_form.day_of_week }}</div>
+                        <div class="field-group"><label>Meal Type</label>{{ formset.empty_form.meal_type }}</div>
+                        <div class="field-group"><label>Time Slot</label>{{ formset.empty_form.time_slot }}</div>
+                    </div>
+                    <div class="field-group"><label>Description / Food Items</label>{{ formset.empty_form.description }}</div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%; padding: 1rem; margin-top: 2rem; font-size: 1rem;">Assign Diet Plan</button>
+    </form>
+</div>
+
+<script>
+    let mealCount = parseInt(document.getElementById('id_meals-TOTAL_FORMS').value);
+
+    document.getElementById('add-meal-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const totalFormsInput = document.getElementById('id_meals-TOTAL_FORMS');
+        const emptyFormHtml = document.getElementById('empty-form').innerHTML
+            .replace(/__prefix__/g, mealCount);
+
+        document.getElementById('formset-container').insertAdjacentHTML('beforeend', emptyFormHtml);
+
+        mealCount++;
+        totalFormsInput.value = mealCount;
+        document.getElementById('meal-counter').innerText = mealCount;
+    });
+</script>
+{% endblock %}

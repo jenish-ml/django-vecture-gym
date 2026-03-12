@@ -1,0 +1,148 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block extra_css %}
+<style>
+    .goals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+    .goal-card {
+        background: #fff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .goal-card:hover {
+        box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+        border-color: var(--primary);
+    }
+    .goal-card-header {
+        padding: 0.8rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .goal-card-body {
+        padding: 1rem 1.25rem 1.25rem;
+    }
+    .goal-card-body .title { font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-bottom: 0.3rem; }
+    .goal-card-body .sub   { font-size: 0.88rem; color: #64748b; line-height: 1.5; }
+    .goal-card-body .price { font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-top: 0.5rem; }
+
+    /* Colour themes per card */
+    .theme-pink   .goal-card-header { background: #fff1f5; color: var(--primary); border-bottom: 1.5px solid #fde4ec; }
+    .theme-blue   .goal-card-header { background: #eff6ff; color: #1d4ed8; border-bottom: 1.5px solid #bfdbfe; }
+    .theme-green  .goal-card-header { background: #f0fdf4; color: #166534; border-bottom: 1.5px solid #bbf7d0; }
+    .theme-purple .goal-card-header { background: #faf5ff; color: #7c3aed; border-bottom: 1.5px solid #e9d5ff; }
+
+    .info-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        margin-top: 0.4rem;
+        font-size: 0.85rem;
+        color: #475569;
+    }
+    .badge-goal {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: #fef9c3;
+        color: #854d0e;
+    }
+    .not-assigned {
+        text-align: center;
+        padding: 1.5rem;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+
+<h2 style="margin-bottom: 1.5rem; font-size: 1.3rem; color: var(--text-light);">🎯 My Goals &amp; Plans</h2>
+
+<div class="goals-grid">
+
+    <!-- Fitness Goal -->
+    <div class="goal-card theme-pink">
+        <div class="goal-card-header">🏆 Fitness Goal</div>
+        <div class="goal-card-body">
+            {% if profile.fitness_goal %}
+                <div class="title">{{ profile.fitness_goal.name }}</div>
+                <div class="sub">{{ profile.fitness_goal.description|default:"Work hard towards your goal!" }}</div>
+            {% else %}
+                <div class="not-assigned">No fitness goal set yet. Contact admin.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Trainer -->
+    <div class="goal-card theme-blue">
+        <div class="goal-card-header">🏋️ My Trainer</div>
+        <div class="goal-card-body">
+            {% if profile.trainer %}
+                <div class="title">{{ profile.trainer.get_full_name|default:profile.trainer.username|title }}</div>
+                <div class="info-row">📧 {{ profile.trainer.email }}</div>
+            {% else %}
+                <div class="not-assigned">No trainer assigned yet.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if user.member_type == 'offline' %}
+    <!-- Membership Plan (offline only) -->
+    <div class="goal-card theme-purple">
+        <div class="goal-card-header">🏅 Membership Plan</div>
+        <div class="goal-card-body">
+            {% if profile.membership_plan %}
+                <div class="title">{{ profile.membership_plan.name }}</div>
+                <div class="sub">{{ profile.membership_plan.description|default:"" }}</div>
+                <div class="price">&#8377;{{ profile.membership_plan.price }} / {{ profile.membership_plan.duration_months }} month(s)</div>
+            {% else %}
+                <div class="not-assigned">No membership plan assigned. Contact admin.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Nutrition Plan (offline only) -->
+    <div class="goal-card theme-green">
+        <div class="goal-card-header">🥗 Nutrition Plan</div>
+        <div class="goal-card-body">
+            {% if profile.nutrition_plan %}
+                <div class="title">{{ profile.nutrition_plan.name }}</div>
+                <div class="sub">{{ profile.nutrition_plan.description|default:"Your personalised nutrition plan." }}</div>
+                <div style="margin-top:0.75rem;">
+                    <a href="{% url 'dashboard:member_nutrition' %}" class="btn btn-outline" style="font-size:0.82rem; padding:0.35rem 0.9rem;">View Full Plan →</a>
+                </div>
+            {% else %}
+                <div class="not-assigned">No nutrition plan assigned yet.</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user.member_type == 'online' %}
+    <!-- Member Type badge for online -->
+    <div class="goal-card theme-green">
+        <div class="goal-card-header">🌐 Member Type</div>
+        <div class="goal-card-body">
+            <div class="title">Online Member</div>
+            <div class="sub">You have access to workout sessions, diet schedules, and the online shop.</div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

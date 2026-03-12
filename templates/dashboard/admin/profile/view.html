@@ -1,0 +1,51 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card">
+        <h3 style="margin-bottom: 2rem; color: var(--text-light);">⚙️ Profile Settings</h3>
+
+        <!-- Read-only Info -->
+        <div style="background: var(--bg-dark); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border);">
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.3rem;">Username</label>
+                <p style="font-weight: 600; color: var(--text-light);">{{ user.username }}</p>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.3rem;">Email Address</label>
+                <p style="font-weight: 600; color: var(--text-light);">{{ user.email }}</p>
+            </div>
+            <div>
+                <label style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.3rem;">Phone Number</label>
+                <p style="font-weight: 600; color: var(--text-light);">{{ user.phone_no|default:"Not set" }}</p>
+            </div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div style="border-top: 1px solid var(--border); padding-top: 1.5rem;">
+                <h4 style="margin-bottom: 1rem; color: var(--text-light);">🔒 Change Password</h4>
+                <button type="button" class="btn btn-outline" id="togglePasswordBtn" style="width: 100%; padding: 0.85rem; margin-bottom: 1rem;">Show Password Fields</button>
+
+                <div id="passwordFormFields" style="display: none;">
+                    {% for field in form %}
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.4rem; font-weight: 600; color: #334155; font-size: 0.9rem;">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<span style="color:#ef4444; font-size:0.85rem; display:block; margin-top: 0.3rem;">{{ field.errors|striptags }}</span>{% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn" style="width: 100%; padding: 1rem; margin-top: 0.5rem;">Update Password</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('togglePasswordBtn').addEventListener('click', function() {
+        document.getElementById('passwordFormFields').style.display = 'block';
+        this.style.display = 'none';
+    });
+</script>
+{% endblock %}

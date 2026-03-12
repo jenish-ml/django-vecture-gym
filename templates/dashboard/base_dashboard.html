@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Vecture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF3366;
+            --primary-dark: #cc0033;
+            --bg-dark: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-hover: #f1f5f9;
+            --text-light: #0f172a;
+            --text-muted: #475569;
+            --border: #e2e8f0;
+            --sidebar-width: 250px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-header .brand {
+            font-size: 1.8rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            flex-grow: 1;
+            padding: 1.5rem 0;
+        }
+
+        .sidebar-menu li { margin-bottom: 0.5rem; }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 0.8rem 1.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            color: var(--text-light);
+            background-color: var(--bg-hover);
+            border-left-color: var(--primary);
+        }
+
+        .user-info {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex-grow: 1;
+            margin-left: var(--sidebar-width);
+            padding: 2rem 3rem;
+            overflow-y: auto;
+            width: 100%;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(255, 51, 102, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Forms */
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="date"], select, textarea, input[type="url"], input[type="tel"] {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 51, 102, 0.1);
+        }
+
+        input:disabled, input[disabled], select:disabled, textarea:disabled {
+            background: #f1f5f9;
+            color: var(--text-light);
+            opacity: 1; /* prevent browser dimming */
+            cursor: not-allowed;
+        }
+
+        .table-responsive { overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; }
+        tr:hover { background-color: var(--bg-hover); }
+        
+        .badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .bg-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .bg-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .bg-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+        /* Dropdown Theme Fixes */
+        select option {
+            background-color: var(--bg-card);
+            color: var(--text-light);
+        }
+        
+        /* Mobile Responsiveness */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            padding: 0.4rem 0.7rem;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text-light);
+        }
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { 
+                width: 100%; 
+                position: relative; 
+                height: auto; 
+                border-right: none; 
+                border-bottom: 1px solid var(--border);
+                z-index: 10; 
+            }
+            .sidebar-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem 1.5rem;
+            }
+            .sidebar-toggle { display: block; }
+            .sidebar-menu {
+                display: none;
+                padding: 0.5rem 0;
+            }
+            .sidebar-menu.open { display: flex; flex-direction: column; }
+            .user-info { display: none; }
+            .user-info.open { display: block; }
+            .main-content { margin-left: 0; padding: 1.5rem; width: 100%; }
+            .topbar { flex-direction: column; gap: 1rem; align-items: flex-start; }
+            .card { padding: 1rem; }
+            .sidebar-menu a { border-left: none; border-bottom: 1px solid var(--border); }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <a href="{% url 'core:home' %}" class="brand">Vecture</a>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">☰</button>
+        </div>
+        <ul class="sidebar-menu" id="sidebarMenu">
+            <li><a href="{% url 'dashboard:dashboard_home' %}" class="active">🏠 Dashboard Home</a></li>
+            
+            {% if user.role == 'admin' or user.is_superuser %}
+                <li><a href="{% url 'dashboard:admin_users' %}">👥 Manage Users</a></li>
+                <li><a href="{% url 'dashboard:admin_trainers' %}">🏋️ Manage Trainers</a></li>
+                <li><a href="{% url 'dashboard:admin_products' %}">🛒 Manage Products</a></li>
+                <li><a href="{% url 'dashboard:admin_plans' %}">📋 Manage Plans & Goals</a></li>
+                <li><a href="{% url 'dashboard:admin_payments' %}">💳 Fees & Payments</a></li>
+                <li><a href="{% url 'dashboard:admin_messages' %}">✉️ Contact Messages</a></li>
+            {% elif user.role == 'trainer' %}
+                <li><a href="{% url 'dashboard:trainer_view_users' %}">👥 My Assigned Users</a></li>
+                <li><a href="{% url 'dashboard:trainer_assign_workout' %}">📅 Assign Workout Plans (Offline)</a></li>
+                <li><a href="{% url 'dashboard:trainer_assign_diet' %}">🥗 Assign Diet Plans (Offline)</a></li>
+                <li><a href="{% url 'dashboard:trainer_assign_online_workout' %}">💻 Assign Online Workout</a></li>
+                <li><a href="{% url 'dashboard:trainer_assign_online_diet' %}">🍏 Assign Online Diet</a></li>
+                <li><a href="{% url 'dashboard:trainer_dashboard' %}">📈 Vecture Progress Charts</a></li>
+                <li><a href="{% url 'dashboard:trainer_dashboard' %}">📈 Vecture Progress Charts</a></li>
+            {% elif user.role == 'member' %}
+                <li><a href="{% url 'dashboard:member_goals' %}">🎯 My Goals &amp; Plans</a></li>
+                <li><a href="{% url 'dashboard:member_products' %}">🛍️ Shop Products</a></li>
+                <li><a href="{% url 'shop:view_cart' %}">🛒 My Cart &amp; Orders</a></li>
+                {% if user.member_type == 'online' %}
+                <li><a href="{% url 'fitness:update_progress' %}">📊 Update Progress</a></li>
+                {% elif user.member_type == 'offline' %}
+                <li><a href="{% url 'dashboard:member_nutrition' %}">🍎 View Nutrition Plan</a></li>
+                {% endif %}
+            {% endif %}
+            
+            {% if user.role == 'admin' or user.is_superuser %}
+                <li><a href="{% url 'dashboard:admin_profile' %}">⚙️ Profile Settings</a></li>
+            {% elif user.role == 'trainer' %}
+                <li><a href="{% url 'dashboard:trainer_profile' %}">⚙️ Profile Settings</a></li>
+            {% elif user.role == 'member' %}
+                <li><a href="{% url 'dashboard:member_profile' %}">⚙️ Profile Settings</a></li>
+            {% endif %}
+        </ul>
+        <div class="user-info" id="sidebarUserInfo">
+            <p style="font-weight: bold; margin-bottom: 0.5rem;">{{ user.username|title }}</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Role: {{ user.get_role_display }}</p>
+            <a href="{% url 'accounts:logout' %}" class="btn btn-outline" style="width: 100%; display:block; text-align:center;">Logout</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="topbar">
+            <h2>Welcome back, <span style="color: var(--primary);">{{ user.username|title }}</span>!</h2>
+            <div>{{ now|date:"F d, Y" }}</div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div style="padding: 1rem; border-radius: 8px; margin-bottom: 1rem; background: var(--bg-card); border-left: 4px solid var(--primary);">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block dashboard_content %}{% endblock %}
+    </main>
+
+    <script>
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        const sidebarUserInfo = document.getElementById('sidebarUserInfo');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebarMenu.classList.toggle('open');
+                if (sidebarUserInfo) sidebarUserInfo.classList.toggle('open');
+                sidebarToggle.textContent = sidebarMenu.classList.contains('open') ? '✕' : '☰';
+            });
+            // Close when a menu link is clicked on mobile
+            sidebarMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    sidebarMenu.classList.remove('open');
+                    if (sidebarUserInfo) sidebarUserInfo.classList.remove('open');
+                    sidebarToggle.textContent = '☰';
+                });
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

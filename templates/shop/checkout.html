@@ -1,0 +1,295 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block extra_css %}
+<style>
+    .checkout-wrapper { max-width: 640px; margin: 0 auto; }
+    .checkout-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 2px solid #e2e8f0;
+    }
+    .checkout-header h3 { margin: 0; font-size: 1.3rem; color: var(--text-light); }
+
+    /* Order summary */
+    .order-summary-box {
+        background: #f8fafc; border: 1.5px solid #e2e8f0;
+        border-radius: 14px; padding: 1.25rem; margin-bottom: 2rem;
+    }
+    .order-summary-box h4 {
+        font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;
+        color: #64748b; margin-bottom: 1rem;
+    }
+    .order-item {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.6rem 0; border-bottom: 1px solid #e2e8f0;
+        font-size: 0.92rem;
+    }
+    .order-item:last-of-type { border-bottom: none; }
+    .order-item .qty-controls {
+        display: flex; align-items: center; gap: 0.4rem;
+    }
+    .qty-btn {
+        width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid #e2e8f0;
+        background: white; color: #334155; cursor: pointer; font-size: 0.9rem;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+    }
+    .qty-btn:hover { background: #f1f5f9; }
+    .item-price { font-weight: 700; color: #1e293b; min-width: 70px; text-align: right; }
+    .order-total {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: 1rem; padding-top: 0.75rem; border-top: 2px solid #e2e8f0;
+        font-size: 1.05rem; font-weight: 800;
+    }
+    .order-total span:last-child { color: var(--primary); font-size: 1.2rem; }
+
+    /* Payment methods */
+    .method-section h4 {
+        font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;
+        color: #64748b; margin-bottom: 1rem;
+    }
+    .method-option {
+        display: flex; align-items: center; gap: 1rem;
+        padding: 1rem 1.25rem; border: 1.5px solid #e2e8f0;
+        border-radius: 12px; cursor: pointer; margin-bottom: 0.75rem;
+        background: #fff; transition: border-color 0.15s, background 0.15s;
+    }
+    .method-option:has(input:checked) { border-color: var(--primary); background: #fff1f5; }
+    .method-option input[type="radio"] { accent-color: var(--primary); width: 18px; height: 18px; }
+    .method-icon {
+        font-size: 1.5rem; width: 42px; height: 42px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .method-icon.card { background: #eff6ff; }
+    .method-icon.upi  { background: #f0fdf4; }
+    .method-icon.cod  { background: #fff7ed; }
+    .method-info .title { font-weight: 700; font-size: 0.95rem; color: #1e293b; }
+    .method-info .sub   { font-size: 0.8rem; color: #64748b; margin-top: 0.15rem; }
+
+    /* Detail panels */
+    .details-panel {
+        display: none; margin: 0.25rem 0 1.25rem;
+        padding: 1.25rem; background: #f8fafc;
+        border: 1.5px solid #e2e8f0; border-radius: 12px;
+    }
+    .details-panel.active { display: block; }
+    .details-panel .fp-label {
+        display: block; font-size: 0.78rem; font-weight: 700;
+        color: #475569; text-transform: uppercase; letter-spacing: 0.3px;
+        margin-bottom: 0.4rem;
+    }
+    .details-panel input[type="text"],
+    .details-panel input[type="tel"] {
+        width: 100%; padding: 0.75rem 1rem;
+        border: 1.5px solid #e2e8f0; border-radius: 8px;
+        background: #fff; color: #1e293b; font-size: 0.93rem;
+        margin-bottom: 0.25rem; outline: none;
+        transition: border-color 0.15s;
+    }
+    .details-panel input:focus { border-color: var(--primary); box-shadow: none; }
+    .details-panel input.input-error { border-color: #ef4444 !important; }
+    .field-error { color: #ef4444; font-size: 0.78rem; margin-bottom: 0.75rem; display: none; }
+    .field-error.show { display: block; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .upi-apps { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .upi-badge {
+        padding: 0.25rem 0.65rem; background: #e0f2fe; color: #0369a1;
+        border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    }
+
+    .pay-btn {
+        width: 100%; padding: 1rem; font-size: 1.05rem; margin-top: 0.5rem;
+    }
+    .secure-note {
+        text-align: center; font-size: 0.78rem; color: #94a3b8;
+        margin-top: 0.75rem; display: flex; align-items: center;
+        justify-content: center; gap: 0.4rem;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="checkout-wrapper">
+
+    <div class="checkout-header">
+        <h3>🛒 Checkout</h3>
+        <a href="{% url 'shop:view_cart' %}" class="btn btn-outline">← Back to Cart</a>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-summary-box">
+        <h4>Order Summary</h4>
+        {% for item in items %}
+        <div class="order-item">
+            <div>
+                <span style="font-weight:600;">{{ item.product.name }}</span>
+                <div class="qty-controls" style="margin-top:0.3rem;">
+                    <form method="POST" action="{% url 'shop:update_cart' item.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="decrease">
+                        <input type="hidden" name="next" value="shop:checkout">
+                        <button type="submit" class="qty-btn">−</button>
+                    </form>
+                    <span style="font-size:0.9rem; min-width:20px; text-align:center;">{{ item.quantity }}</span>
+                    <form method="POST" action="{% url 'shop:update_cart' item.id %}" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="increase">
+                        <input type="hidden" name="next" value="shop:checkout">
+                        <button type="submit" class="qty-btn">+</button>
+                    </form>
+                    <form method="POST" action="{% url 'shop:remove_from_cart' item.id %}" style="margin:0; margin-left:0.3rem;">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="shop:checkout">
+                        <button type="submit" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:0.8rem;">Remove</button>
+                    </form>
+                </div>
+            </div>
+            <span class="item-price">&#8377;{% widthratio item.product.price 1 item.quantity %}</span>
+        </div>
+        {% endfor %}
+        <div class="order-total">
+            <span>Total</span>
+            <span>&#8377;{{ total }}</span>
+        </div>
+    </div>
+
+    <!-- Payment Form -->
+    <form method="POST" action="{% url 'shop:checkout' %}" id="checkoutForm" novalidate>
+        {% csrf_token %}
+
+        <div class="method-section">
+            <h4>Payment Method</h4>
+
+            <!-- Card -->
+            <label class="method-option">
+                <input type="radio" name="payment_method" value="card" checked onchange="togglePayment()">
+                <div class="method-icon card">💳</div>
+                <div class="method-info">
+                    <div class="title">Credit / Debit Card</div>
+                    <div class="sub">Visa, Mastercard, RuPay accepted</div>
+                </div>
+            </label>
+
+            <div class="details-panel active" id="card-panel">
+                <label class="fp-label">Card Number *</label>
+                <input type="tel" id="cardNumber" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number">
+                <div class="field-error" id="cardNumberError">Please enter a valid 16-digit card number.</div>
+
+                <div class="row-2">
+                    <div>
+                        <label class="fp-label">Expiry (MM/YY) *</label>
+                        <input type="tel" id="expiry" name="expiry" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp">
+                        <div class="field-error" id="expiryError">Enter a valid expiry (MM/YY).</div>
+                    </div>
+                    <div>
+                        <label class="fp-label">CVV *</label>
+                        <input type="tel" id="cvv" name="cvv" placeholder="•••" maxlength="4" autocomplete="cc-csc">
+                        <div class="field-error" id="cvvError">Enter 3 or 4 digit CVV.</div>
+                    </div>
+                </div>
+
+                <label class="fp-label">Cardholder Name *</label>
+                <input type="text" id="cardName" name="card_name" placeholder="Name as on card" autocomplete="cc-name">
+                <div class="field-error" id="cardNameError">Please enter the cardholder name.</div>
+            </div>
+
+            <!-- UPI -->
+            <label class="method-option">
+                <input type="radio" name="payment_method" value="online" onchange="togglePayment()">
+                <div class="method-icon upi">📱</div>
+                <div class="method-info">
+                    <div class="title">Online Payment (UPI / Netbanking)</div>
+                    <div class="sub">PhonePe, GPay, Paytm, BHIM</div>
+                </div>
+            </label>
+
+            <div class="details-panel" id="upi-panel">
+                <label class="fp-label">UPI ID *</label>
+                <input type="text" id="upiId" name="upi_id" placeholder="username@bank (e.g. raj@ybl)" autocomplete="off">
+                <div class="field-error" id="upiError">Enter a valid UPI ID (e.g. name@bank).</div>
+                <div class="upi-apps">
+                    <span class="upi-badge">📱 PhonePe</span>
+                    <span class="upi-badge">💚 GPay</span>
+                    <span class="upi-badge">🔵 Paytm</span>
+                    <span class="upi-badge">🟠 BHIM</span>
+                </div>
+                <p style="font-size:0.8rem; color:#64748b; margin-top:0.75rem;">A payment request of &#8377;{{ total }} will be sent to your UPI ID.</p>
+            </div>
+
+            <!-- COD -->
+            <label class="method-option">
+                <input type="radio" name="payment_method" value="cod" onchange="togglePayment()">
+                <div class="method-icon cod">💵</div>
+                <div class="method-info">
+                    <div class="title">Cash on Delivery</div>
+                    <div class="sub">Pay when you receive your order</div>
+                </div>
+            </label>
+        </div>
+
+        <button type="button" class="btn pay-btn" onclick="validateAndSubmit()">
+            🔒 Confirm &amp; Pay &#8377;{{ total }}
+        </button>
+        <p class="secure-note">🔐 Secure &amp; encrypted. Your data is safe.</p>
+    </form>
+</div>
+
+<script>
+    function togglePayment() {
+        const method = document.querySelector('input[name="payment_method"]:checked').value;
+        document.getElementById('card-panel').classList.toggle('active', method === 'card');
+        document.getElementById('upi-panel').classList.toggle('active', method === 'online');
+    }
+
+    // Auto-format card number with spaces
+    const cardNum = document.getElementById('cardNumber');
+    cardNum.addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').substring(0, 16);
+        this.value = v.replace(/(.{4})/g, '$1 ').trim();
+    });
+
+    // Auto-format expiry MM/YY
+    const expiryInput = document.getElementById('expiry');
+    expiryInput.addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').substring(0, 4);
+        if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
+        this.value = v;
+    });
+
+    function showError(id, inputId) {
+        document.getElementById(id).classList.add('show');
+        if (inputId) document.getElementById(inputId).classList.add('input-error');
+    }
+    function clearErrors() {
+        document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
+        document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
+    }
+
+    function validateAndSubmit() {
+        clearErrors();
+        const method = document.querySelector('input[name="payment_method"]:checked').value;
+        let valid = true;
+
+        if (method === 'card') {
+            const num = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            if (!/^\d{16}$/.test(num)) { showError('cardNumberError', 'cardNumber'); valid = false; }
+
+            const exp = document.getElementById('expiry').value;
+            if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(exp)) { showError('expiryError', 'expiry'); valid = false; }
+
+            const cvv = document.getElementById('cvv').value;
+            if (!/^\d{3,4}$/.test(cvv)) { showError('cvvError', 'cvv'); valid = false; }
+
+            const name = document.getElementById('cardName').value.trim();
+            if (name.length < 2) { showError('cardNameError', 'cardName'); valid = false; }
+
+        } else if (method === 'online') {
+            const upi = document.getElementById('upiId').value.trim();
+            if (!/^[\w.\-_+]+@[\w]+$/.test(upi)) { showError('upiError', 'upiId'); valid = false; }
+        }
+
+        if (valid) {
+            document.getElementById('checkoutForm').submit();
+        }
+    }
+</script>
+{% endblock %}

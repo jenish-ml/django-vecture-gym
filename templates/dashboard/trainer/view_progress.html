@@ -1,0 +1,170 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div class="card" style="margin-bottom: 2rem;">
+    <h3>Progress Chart for {{ member.first_name }} {{ member.last_name }}</h3>
+    <div style="height: 400px; margin-top: 2rem;">
+        <canvas id="progressChart"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem;">Detailed Logs</h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Weight (kg)</th>
+                    <th>Body Fat (%)</th>
+                    <th>Muscle Mass (kg)</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.date|date:"M d, Y" }}</td>
+                    <td>{{ log.weight }}</td>
+                    <td>{{ log.body_fat_percentage|default:"--" }}</td>
+                    <td>{{ log.muscle_mass_kg|default:"--" }}</td>
+                    <td>{{ log.notes }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">No progress logged yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Advanced Online Plans -->
+{% if latest_online_workout %}
+<div class="card" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 1.5rem; color: var(--primary);">
+        Assigned Online Workout Schedule (Week of {{ latest_online_workout.week_start_date|date:"M d, Y" }})
+    </h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Time Slot</th>
+                    <th>Title</th>
+                    <th>Notes</th>
+                    <th>Video</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in latest_online_workout.sessions.all|dictsort:"day_of_week" %}
+                <tr>
+                    <td>Day {{ session.day_of_week }}</td>
+                    <td>{{ session.time_slot }}</td>
+                    <td style="font-weight: 600;">{{ session.title }}</td>
+                    <td style="white-space: pre-wrap; font-size: 0.9rem;">{{ session.notes }}</td>
+                    <td>
+                        {% if session.video %}
+                            <a href="{{ session.video.url }}" target="_blank" class="badge" style="background: rgba(56,189,248,0.2); color: #38bdf8; text-decoration: none;">Watch Video</a>
+                        {% else %}
+                            <span style="color: var(--text-muted);">None</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if latest_online_diet %}
+<div class="card" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 1.5rem; color: #10b981;">
+        Assigned Online Diet Schedule (Week of {{ latest_online_diet.week_start_date|date:"M d, Y" }})
+    </h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Meal Type</th>
+                    <th>Time Slot</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for meal in latest_online_diet.meals.all|dictsort:"day_of_week" %}
+                <tr>
+                    <td>Day {{ meal.day_of_week }}</td>
+                    <td><span class="badge" style="background: rgba(255,255,255,0.1); color: #f8fafc;">{{ meal.meal_type }}</span></td>
+                    <td>{{ meal.time_slot }}</td>
+                    <td style="white-space: pre-wrap; font-size: 0.9rem;">{{ meal.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    const chartData = {
+        labels: [{% for log in reversed_logs %}'{{ log.date|date:"M d" }}',{% endfor %}],
+        datasets: [{
+            label: 'Weight (kg)',
+            data: [{% for log in reversed_logs %}{{ log.weight|default:"null" }},{% endfor %}],
+            borderColor: '#FF3366',
+            backgroundColor: 'rgba(255, 51, 102, 0.1)',
+            borderWidth: 3,
+            fill: false,
+            tension: 0.4
+        },
+        {
+            label: 'Body Fat (%)',
+            data: [{% for log in reversed_logs %}{{ log.body_fat_percentage|default:"null" }},{% endfor %}],
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+            borderWidth: 3,
+            fill: false,
+            tension: 0.4
+        },
+        {
+            label: 'Muscle Mass (kg)',
+            data: [{% for log in reversed_logs %}{{ log.muscle_mass_kg|default:"null" }},{% endfor %}],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 3,
+            fill: false,
+            tension: 0.4
+        }]
+    };
+
+    new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#f8fafc' } },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            },
+            scales: {
+                x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block extra_css %}
+<style>
+    .assign-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .assign-header h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        color: var(--text-light);
+    }
+    .meta-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f0f4ff 0%, #fdf4ff 100%);
+        border-radius: 14px;
+        border: 1.5px solid #ddd6fe;
+    }
+    .meta-field label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #7c3aed;
+        margin-bottom: 0.45rem;
+    }
+    /* Day schedule grid */
+    .week-header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 1.25rem;
+    }
+    .week-header h4 {
+        margin: 0;
+        font-size: 1.05rem;
+        color: var(--text-light);
+    }
+    .days-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    .day-card {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+    }
+    .day-card:hover {
+        box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        border-color: var(--primary);
+    }
+    .day-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.75rem 1rem;
+        background: linear-gradient(90deg, #fff1f5 0%, #fdf4ff 100%);
+        border-bottom: 1.5px solid #fde4ec;
+    }
+    .day-badge {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        font-size: 0.78rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .day-badge.rest {
+        background: #64748b;
+    }
+    .day-card-header span {
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: #334155;
+    }
+    .day-card-body {
+        padding: 0.75rem 1rem;
+    }
+    .day-card-body textarea,
+    .day-card-body select {
+        width: 100%;
+        margin: 0;
+        border: none;
+        background: transparent;
+        resize: vertical;
+        font-size: 0.88rem;
+        color: #334155;
+        min-height: 80px;
+        outline: none;
+    }
+    .day-card-body textarea:focus {
+        outline: none;
+        box-shadow: none;
+    }
+    /* Day 7 rest card full width */
+    .day-card.full-width {
+        grid-column: 1 / -1;
+    }
+    /* Meta section */
+    .meta-field select,
+    .meta-field input[type="date"] {
+        background: white;
+    }
+    /* Submit zone */
+    .submit-zone {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+    @media (max-width: 640px) {
+        .meta-grid { grid-template-columns: 1fr; }
+        .days-grid { grid-template-columns: 1fr; }
+        .day-card.full-width { grid-column: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+
+<div class="assign-header">
+    <h3>💪 Assign Workout Plan <span style="font-size:0.85rem; color:#94a3b8; font-weight:500;">(Offline Member)</span></h3>
+    <a href="{% url 'dashboard:trainer_dashboard' %}" class="btn btn-outline">← Back</a>
+</div>
+
+<form method="POST" novalidate>
+    {% csrf_token %}
+
+    <!-- Member & Date -->
+    <div class="meta-grid">
+        <div class="meta-field">
+            <label>👤 Select Member *</label>
+            {{ form.member }}
+            {% if form.member.errors %}<span style="color:#ef4444; font-size:0.82rem; display:block; margin-top:0.3rem;">{{ form.member.errors|striptags }}</span>{% endif %}
+        </div>
+        <div class="meta-field">
+            <label>📅 Week Starting *</label>
+            {{ form.week_start_date }}
+            {% if form.week_start_date.errors %}<span style="color:#ef4444; font-size:0.82rem; display:block; margin-top:0.3rem;">{{ form.week_start_date.errors|striptags }}</span>{% endif %}
+        </div>
+    </div>
+
+    <!-- Weekly Schedule -->
+    <div class="week-header">
+        <h4>🗓️ Weekly Schedule</h4>
+        <span style="font-size: 0.82rem; color: #94a3b8;">(Fill in each day's plan — leave blank for rest)</span>
+    </div>
+
+    <div class="days-grid">
+        <!-- Day 1 -->
+        <div class="day-card">
+            <div class="day-card-header">
+                <div class="day-badge">1</div>
+                <span>Monday</span>
+                <span style="margin-left:auto; font-size:0.75rem; color:#94a3b8;">Chest &amp; Triceps</span>
+            </div>
+            <div class="day-card-body">{{ form.day_1_plan }}</div>
+        </div>
+        <!-- Day 2 -->
+        <div class="day-card">
+            <div class="day-card-header">
+                <div class="day-badge">2</div>
+                <span>Tuesday</span>
+                <span style="margin-left:auto; font-size:0.75rem; color:#94a3b8;">Back &amp; Biceps</span>
+            </div>
+            <div class="day-card-body">{{ form.day_2_plan }}</div>
+        </div>
+        <!-- Day 3 -->
+        <div class="day-card">
+            <div class="day-card-header">
+                <div class="day-badge">3</div>
+                <span>Wednesday</span>
+                <span style="margin-left:auto; font-size:0.75rem; color:#94a3b8;">Legs</span>
+            </div>
+            <div class="day-card-body">{{ form.day_3_plan }}</div>
+        </div>
+        <!-- Day 4 -->
+        <div class="day-card">
+            <div class="day-card-header">
+                <div class="day-badge">4</div>
+                <span>Thursday</span>
+                <span style="margin-left:auto; font-size:0.75rem; color:#94a3b8;">Shoulders &amp; Core</span>
+            </div>
+            <div class="day-card-body">{{ form.day_4_plan }}</div>
+        </div>
+        <!-- Day 5 -->
+        <div class="day-card">
+            <div class="day-card-header">
+                <div class="day-badge">5</div>
+                <span>Friday</span>
+                <span style="margin-left:auto; font-size:0.75rem; color:#94a3b8;">Cardio / HIIT</span>
+            </div>
+            <div class="day-card-body">{{ form.day_5_plan }}</div>
+        </div>
+        <!-- Day 6 -->
+        <div class="day-card">
+            <div class="day-card-header">
+                <div class="day-badge">6</div>
+                <span>Saturday</span>
+                <span style="margin-left:auto; font-size:0.75rem; color:#94a3b8;">Full Body</span>
+            </div>
+            <div class="day-card-body">{{ form.day_6_plan }}</div>
+        </div>
+        <!-- Day 7 – full width rest card -->
+        <div class="day-card full-width">
+            <div class="day-card-header">
+                <div class="day-badge rest">7</div>
+                <span>Sunday</span>
+                <span style="margin-left:auto; font-size:0.75rem; color:#94a3b8;">Rest / Recovery</span>
+            </div>
+            <div class="day-card-body">{{ form.day_7_plan }}</div>
+        </div>
+    </div>
+
+    <div class="submit-zone">
+        <a href="{% url 'dashboard:trainer_dashboard' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn" style="padding: 0.85rem 2.5rem; font-size: 1rem;">
+            💾 Save Workout Plan
+        </button>
+    </div>
+</form>
+
+{% endblock %}

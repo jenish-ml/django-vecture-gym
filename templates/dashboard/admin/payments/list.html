@@ -1,0 +1,108 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div class="topbar" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 0;">Fees & Payments</h3>
+</div>
+
+<div style="display: flex; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+    <button onclick="switchTab('fees')" id="tab-fees" style="background: none; border: none; color: white; cursor: pointer; padding: 0.5rem 1rem; border-radius: 5px; background: rgba(255,51,102,0.2);">Membership Fees</button>
+    <button onclick="switchTab('orders')" id="tab-orders" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.5rem 1rem; border-radius: 5px;">Shop Orders</button>
+</div>
+
+<div id="section-fees">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 style="margin: 0;">Membership Fees</h4>
+        <a href="{% url 'dashboard:admin_fee_add' %}" class="btn" style="font-size: 0.9rem;">+ Add Fee Record</a>
+    </div>
+    <div class="card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Plan</th>
+                        <th>Amount Due</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fee in fee_records %}
+                    <tr>
+                        <td>{{ fee.member.username }}</td>
+                        <td>{{ fee.membership_plan.name|default:"--" }}</td>
+                        <td>&#8377;{{ fee.amount_due }}</td>
+                        <td>{{ fee.due_date|date:"M d, Y" }}</td>
+                        <td>
+                            <span class="badge {% if fee.status == 'Paid' %}bg-success{% elif fee.status == 'Overdue' %}bg-danger{% else %}bg-warning{% endif %}">
+                                {{ fee.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'dashboard:admin_fee_edit' fee.id %}" class="btn btn-outline" style="padding: 0.2rem 0.6rem; font-size: 0.8rem;">Edit / Update</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" style="text-align: center;">No fee records available.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="section-orders" style="display: none;">
+    <h4 style="margin-bottom: 1rem;">Shop Orders</h4>
+    <div class="card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Member</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#ORD-{{ order.id }}</td>
+                        <td>{{ order.member.username }}</td>
+                        <td>{{ order.date_ordered|date:"M d, Y" }}</td>
+                        <td>&#8377;{{ order.total_amount }}</td>
+                        <td>
+                            <span class="badge {% if order.status == 'Paid' or order.status == 'paid' or order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-warning{% endif %}">
+                                {{ order.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'dashboard:admin_payment_detail' order.id %}" class="btn btn-outline" style="padding: 0.2rem 0.6rem; font-size: 0.8rem;">View</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" style="text-align: center;">No shop orders recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        document.getElementById('section-fees').style.display = tab === 'fees' ? 'block' : 'none';
+        document.getElementById('section-orders').style.display = tab === 'orders' ? 'block' : 'none';
+        
+        document.getElementById('tab-fees').style.background = tab === 'fees' ? 'rgba(255,51,102,0.2)' : 'none';
+        document.getElementById('tab-fees').style.color = tab === 'fees' ? 'white' : 'var(--text-muted)';
+        
+        document.getElementById('tab-orders').style.background = tab === 'orders' ? 'rgba(255,51,102,0.2)' : 'none';
+        document.getElementById('tab-orders').style.color = tab === 'orders' ? 'white' : 'var(--text-muted)';
+    }
+</script>
+{% endblock %}

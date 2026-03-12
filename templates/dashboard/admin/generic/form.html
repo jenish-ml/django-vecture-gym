@@ -1,0 +1,32 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+<div class="topbar" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 0; color: var(--text-light);">{{ title }}</h3>
+    <a href="{{ cancel_url }}" class="btn btn-outline">← Back</a>
+</div>
+
+<div style="max-width: 640px;">
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.4rem; font-weight: 600; color: #334155; font-size: 0.9rem;">
+                    {{ field.label }}{% if field.field.required %} <span style="color: var(--primary);">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.label == 'Category' and 'Product' in title %}
+                <small style="display:block; margin-top:0.3rem;"><a href="{% url 'dashboard:admin_category_add' %}" style="color:var(--primary);">+ Add new category</a></small>
+                {% endif %}
+                {% if field.errors %}
+                <span style="color: #ef4444; font-size: 0.85rem; display: block; margin-top: 0.4rem;">{{ field.errors|striptags }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn" style="width: 100%; padding: 1rem; margin-top: 1rem; font-size: 1rem;">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,397 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block dashboard_content %}
+
+<!-- Profile Summary Card -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+        {% if profile.image %}
+        <img src="{{ profile.image.url }}" alt="Profile Image" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 3px solid var(--primary);">
+        {% else %}
+        <div style="width: 80px; height: 80px; background: rgba(255,51,102,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+            <span style="font-size: 2rem; color: var(--primary);">👤</span>
+        </div>
+        {% endif %}
+        <h3 style="margin-bottom: 0.5rem; color: var(--text-light);">{{ user.username|title }}</h3>
+        <span class="badge bg-warning" style="margin-bottom: 1.5rem;">{{ user.get_member_type_display|default:"Unknown" }} Member</span>
+
+        <div style="width: 100%; border-top: 1px solid var(--border); padding-top: 1rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; text-align: left;">
+            <div style="flex: 1; min-width: 120px;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">Trainer</p>
+                <p style="font-weight: 600;">{{ profile.trainer.username|default:"None Assigned"|title }}</p>
+            </div>
+            {% if user.member_type == 'offline' %}
+            <div style="flex: 1; min-width: 120px;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">Membership</p>
+                <p style="font-weight: 600;">{{ profile.membership_plan.name|default:"Not Assigned" }}</p>
+            </div>
+            {% endif %}
+            <div style="width: 100%; margin-top: 0.5rem;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.2rem;">Goal</p>
+                <p style="font-weight: 600;">{{ profile.fitness_goal.name|default:"Not Set" }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if user.member_type == 'offline' %}
+    <!-- OFFLINE: Membership Plan Summary -->
+    <div class="card">
+        <h3 style="margin-bottom: 1rem; color: #0ea5e9; display: flex; align-items: center; gap: 0.5rem;">🏅 My Membership Plan</h3>
+        {% if profile.membership_plan %}
+            <div style="padding: 1rem; background: #f0f9ff; border-left: 3px solid #0ea5e9; border-radius: 8px; margin-bottom: 1rem;">
+                <h4 style="margin-bottom: 0.4rem; color: #0369a1;">{{ profile.membership_plan.name }}</h4>
+                <p style="color: #475569; font-size: 0.95rem;">{{ profile.membership_plan.description|default:"" }}</p>
+                <p style="margin-top: 0.5rem; font-weight: 700; color: var(--primary);">&#8377;{{ profile.membership_plan.price }} / {{ profile.membership_plan.duration_months }} month(s)</p>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted);">
+                <p style="font-size: 2rem; margin-bottom: 0.5rem;">🏅</p>
+                <p>No membership plan assigned yet. Contact admin.</p>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% if user.member_type == 'offline' %}
+<!-- OFFLINE: Nutrition Plan -->
+<div class="card">
+    <h3 style="margin-bottom: 1rem; color: #10b981; display: flex; align-items: center; gap: 0.5rem;">🥗 My Nutrition Plan</h3>
+    {% if profile.nutrition_plan %}
+        <div style="padding: 1rem; background: #f0fdf4; border-left: 3px solid #10b981; border-radius: 8px;">
+            <h4 style="margin-bottom: 0.5rem; color: #065f46;">{{ profile.nutrition_plan.name }}</h4>
+            <p style="color: #475569; font-size: 0.95rem;">{{ profile.nutrition_plan.description }}</p>
+        </div>
+        {% if profile.nutrition_plan.plan_details %}
+        <div style="margin-top: 1.5rem; font-size: 0.95rem; line-height: 1.8; color: var(--text-light);">
+            {{ profile.nutrition_plan.plan_details|linebreaks }}
+        </div>
+        {% endif %}
+    {% else %}
+        <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted);">
+            <p style="font-size: 2rem; margin-bottom: 0.5rem;">🥗</p>
+            <p>No nutrition plan assigned yet. Contact your trainer.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- OFFLINE: Fee Structure -->
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem; color: var(--text-light);">💳 My Fee Structure</h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Plan / Detail</th>
+                    <th>Due Date</th>
+                    <th>Remaining Days</th>
+                    <th>Amount Due</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fee in user_fees %}
+                <tr>
+                    <td>{{ fee.membership_plan.name|default:"General Fee" }}</td>
+                    <td>{{ fee.due_date|date:"M d, Y" }}</td>
+                    <td>
+                        {% if fee.status == 'Paid' %}
+                            <span style="color: var(--text-muted);">--</span>
+                        {% elif fee.remaining_days == 0 %}
+                            <strong style="color: #ef4444;">Due Today</strong>
+                        {% elif fee.remaining_days %}
+                            {{ fee.remaining_days }} days
+                        {% else %}
+                            <strong style="color: #ef4444;">Overdue</strong>
+                        {% endif %}
+                    </td>
+                    <td><strong>&#8377;{{ fee.amount_due }}</strong></td>
+                    <td>
+                        <span class="badge {% if fee.status == 'Paid' %}bg-success{% elif fee.status == 'Overdue' %}bg-danger{% else %}bg-warning{% endif %}">
+                            {{ fee.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if fee.status != 'Paid' %}
+                        <a href="{% url 'dashboard:member_fee_checkout' fee.id %}" class="btn" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;">Pay Now</a>
+                        {% else %}
+                        <span style="color: #10b981; font-size: 0.85rem; font-weight: 600;">&#10003; Paid</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No fee records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif user.member_type == 'online' %}
+<!-- ONLINE MEMBER SECTIONS -->
+
+<!-- Online Workout Schedule -->
+{% if latest_online_workout %}
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+        💪 My Workout Schedule <span style="font-size: 0.85rem; font-weight: 400; color: var(--text-muted);">(Week of {{ latest_online_workout.week_start_date|date:"M d, Y" }})</span>
+    </h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr><th>Day</th><th>Time</th><th>Exercise</th><th>Notes</th><th>Video</th></tr>
+            </thead>
+            <tbody>
+                {% for session in latest_online_workout.sessions.all|dictsort:"day_of_week" %}
+                <tr>
+                    <td><strong>Day {{ session.day_of_week }}</strong></td>
+                    <td>{{ session.time_slot }}</td>
+                    <td style="font-weight: 600;">{{ session.title }}</td>
+                    <td style="white-space: pre-wrap; font-size: 0.9rem; color: var(--text-muted);">{{ session.notes }}</td>
+                    <td>
+                        {% if session.video %}
+                            <a href="{{ session.video.url }}" target="_blank" class="badge bg-success" style="text-decoration: none;">▶ Watch</a>
+                        {% else %}
+                            <span style="color: var(--text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+    <p style="font-size: 2rem; margin-bottom: 0.5rem;">💪</p>
+    <p>No workout schedule assigned yet. Your trainer will add one soon.</p>
+</div>
+{% endif %}
+
+<!-- Online Diet Schedule -->
+{% if latest_online_diet %}
+<div class="card">
+
+    <style>
+        .diet-section-title {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .diet-section-title h3 {
+            margin: 0; font-size: 1.15rem; color: #10b981;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .week-pill {
+            font-size: 0.78rem; background: #d1fae5; color: #065f46;
+            padding: 0.3rem 0.75rem; border-radius: 20px; font-weight: 600;
+        }
+        .days-diet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        .day-diet-card {
+            border: 1.5px solid #e2e8f0; border-radius: 14px; overflow: hidden;
+            background: #fff;
+        }
+        .day-diet-header {
+            padding: 0.6rem 1rem;
+            background: linear-gradient(90deg, #f0fdf4, #ecfdf5);
+            border-bottom: 1.5px solid #a7f3d0;
+            display: flex; align-items: center; gap: 0.6rem;
+        }
+        .day-circle {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: #10b981; color: white;
+            font-size: 0.75rem; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .day-diet-header span { font-weight: 700; color: #065f46; font-size: 0.88rem; }
+        .meal-list { padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+        .meal-row {
+            display: flex; gap: 0.75rem; align-items: flex-start;
+            padding: 0.6rem 0.75rem; border-radius: 10px;
+            border: 1px solid #f1f5f9; background: #fafafa;
+        }
+        .meal-type-badge {
+            display: inline-block; padding: 0.2rem 0.6rem;
+            border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+            white-space: nowrap; flex-shrink: 0; margin-top: 0.1rem;
+        }
+        .meal-type-badge.breakfast { background: #fff7ed; color: #c2410c; }
+        .meal-type-badge.lunch     { background: #f0fdf4; color: #166534; }
+        .meal-type-badge.snacks    { background: #fefce8; color: #854d0e; }
+        .meal-type-badge.dinner    { background: #eff6ff; color: #1d4ed8; }
+        .meal-type-badge.default   { background: #f3f4f6; color: #374151; }
+        .meal-info { flex: 1; }
+        .meal-time { font-size: 0.73rem; color: #94a3b8; margin-bottom: 0.15rem; }
+        .meal-desc { font-size: 0.88rem; color: #334155; line-height: 1.5; }
+    </style>
+
+    <div class="diet-section-title">
+        <h3>🥗 My Diet Schedule</h3>
+        <span class="week-pill">Week of {{ latest_online_diet.week_start_date|date:"M d, Y" }}</span>
+    </div>
+
+    <div class="days-diet-grid">
+        {% regroup latest_online_diet.meals.all|dictsort:"day_of_week" by day_of_week as days_meals %}
+        {% for day_group in days_meals %}
+        <div class="day-diet-card">
+            <div class="day-diet-header">
+                <div class="day-circle">{{ day_group.grouper }}</div>
+                <span>
+                    {% if day_group.grouper == "1" %}Monday
+                    {% elif day_group.grouper == "2" %}Tuesday
+                    {% elif day_group.grouper == "3" %}Wednesday
+                    {% elif day_group.grouper == "4" %}Thursday
+                    {% elif day_group.grouper == "5" %}Friday
+                    {% elif day_group.grouper == "6" %}Saturday
+                    {% elif day_group.grouper == "7" %}Sunday
+                    {% else %}Day {{ day_group.grouper }}{% endif %}
+                </span>
+            </div>
+            <div class="meal-list">
+                {% for meal in day_group.list %}
+                <div class="meal-row">
+                    <span class="meal-type-badge {% if meal.meal_type == 'Breakfast' %}breakfast{% elif meal.meal_type == 'Lunch' %}lunch{% elif meal.meal_type == 'Snacks' %}snacks{% elif meal.meal_type == 'Dinner' %}dinner{% else %}default{% endif %}">
+                        {% if meal.meal_type == 'Breakfast' %}☀️{% elif meal.meal_type == 'Lunch' %}🍱{% elif meal.meal_type == 'Snacks' %}🍎{% elif meal.meal_type == 'Dinner' %}🌙{% else %}🍽️{% endif %}
+                        {{ meal.meal_type }}
+                    </span>
+                    <div class="meal-info">
+                        {% if meal.time_slot %}<div class="meal-time">🕐 {{ meal.time_slot }}</div>{% endif %}
+                        <div class="meal-desc">{{ meal.description }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <p style="color:var(--text-muted); grid-column:1/-1; text-align:center; padding:2rem;">No meals scheduled yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+    <p style="font-size: 2rem; margin-bottom: 0.5rem;">🥗</p>
+    <p>No diet schedule assigned yet. Your trainer will add one soon.</p>
+</div>
+{% endif %}
+
+<!-- ONLINE: Fee Structure (normal, no membership link) -->
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem; color: var(--text-light);">💳 My Fee Structure</h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Due Date</th>
+                    <th>Remaining Days</th>
+                    <th>Amount Due</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fee in user_fees %}
+                <tr>
+                    <td>{{ fee.membership_plan.name|default:"Monthly Fee" }}</td>
+                    <td>{{ fee.due_date|date:"M d, Y" }}</td>
+                    <td>
+                        {% if fee.status == 'Paid' %}
+                            <span style="color: var(--text-muted);">--</span>
+                        {% elif fee.remaining_days == 0 %}
+                            <strong style="color: #ef4444;">Due Today</strong>
+                        {% elif fee.remaining_days %}
+                            {{ fee.remaining_days }} days
+                        {% else %}
+                            <strong style="color: #ef4444;">Overdue</strong>
+                        {% endif %}
+                    </td>
+                    <td><strong>&#8377;{{ fee.amount_due }}</strong></td>
+                    <td>
+                        <span class="badge {% if fee.status == 'Paid' %}bg-success{% elif fee.status == 'Overdue' %}bg-danger{% else %}bg-warning{% endif %}">
+                            {{ fee.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if fee.status != 'Paid' %}
+                        <a href="{% url 'dashboard:member_fee_checkout' fee.id %}" class="btn" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;">Pay Now</a>
+                        {% else %}
+                        <span style="color: #10b981; font-size: 0.85rem; font-weight: 600;">&#10003; Paid</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No fee records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ONLINE: Progress Updates -->
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        📊 Recent Progress
+        <a href="{% url 'fitness:update_progress' %}" class="btn" style="font-size: 0.85rem; padding: 0.5rem 1rem;">+ Update</a>
+    </h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr><th>Date</th><th>Weight (kg)</th><th>Body Fat (%)</th><th>Muscle (kg)</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+                {% for progress in recent_progress %}
+                <tr>
+                    <td>{{ progress.date|date:"M d, Y" }}</td>
+                    <td>{{ progress.weight }}</td>
+                    <td>{{ progress.body_fat_percentage|default:"--" }}</td>
+                    <td>{{ progress.muscle_mass_kg|default:"--" }}</td>
+                    <td style="color: var(--text-muted); font-size: 0.9rem;">{{ progress.notes }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No progress yet. Start tracking today!</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ONLINE: Recent Orders -->
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem;">🛍️ Recent Orders</h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr><th>Order ID</th><th>Date</th><th>Total</th><th>Status</th><th>Items</th></tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                    <td>#{{ order.id }}</td>
+                    <td>{{ order.date_ordered|date:"M d, Y" }}</td>
+                    <td><strong>&#8377;{{ order.total_amount }}</strong></td>
+                    <td>
+                        {% if order.status == 'pending' %}<span class="badge bg-warning">Pending</span>
+                        {% elif order.status == 'paid' %}<span class="badge bg-success">Paid</span>
+                        {% elif order.status == 'shipped' %}<span class="badge" style="background:#e0f2fe; color:#0369a1;">Shipped</span>
+                        {% elif order.status == 'delivered' %}<span class="badge bg-success">Delivered</span>
+                        {% else %}<span class="badge bg-danger">Cancelled</span>{% endif %}
+                    </td>
+                    <td style="font-size: 0.85rem; color: var(--text-muted);">
+                        {% for item in order.items.all %}{{ item.quantity }}× {{ item.product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No orders yet. Visit the shop!</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
