@@ -459,13 +459,12 @@ def admin_message_detail(request, msg_id):
                 msg.is_resolved = True
                 msg.save()
                 messages.success(request, f"Reply sent to {msg.email} and message marked as resolved!")
-                return redirect('dashboard:admin_messages')
             except Exception as e:
                 messages.error(request, f"Failed to send email: {str(e)}")
         else:
             messages.error(request, "Reply message cannot be empty.")
 
-    return render(request, 'dashboard/admin/messages/detail.html', {'msg': msg})
+    return redirect('dashboard:admin_messages')
 
 @login_required
 def admin_resolve_message(request, msg_id):
