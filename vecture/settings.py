@@ -131,3 +131,12 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'dashboard:dashboard_home'
 LOGOUT_REDIRECT_URL = 'core:home'
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'apsaraanilkumar7@gmail.com'
+EMAIL_HOST_PASSWORD = 'ylvowfjyyqiwzhdl'
+DEFAULT_FROM_EMAIL = 'Vecture Gym <apsaraanilkumar7.com>'

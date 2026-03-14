@@ -78,7 +78,20 @@ class OnlineWorkoutSession(models.Model):
     time_slot = models.TimeField(null=True, blank=True)
     title = models.CharField(max_length=200)
     notes = models.TextField(blank=True, null=True, help_text="Write notes with bullet points for easiest reading.")
-    video = models.FileField(upload_to='workout_videos/', blank=True, null=True)
+    video_url = models.URLField(max_length=500, blank=True, null=True, help_text="Provide a YouTube embedded link (e.g. https://www.youtube.com/embed/...)")
+
+    def get_embed_url(self):
+        """Convert a regular YouTube URL to an embed URL."""
+        if not self.video_url:
+            return ''
+        url = self.video_url
+        if 'youtube.com/watch?v=' in url:
+            video_id = url.split('v=')[1].split('&')[0]
+            return f'https://www.youtube.com/embed/{video_id}'
+        elif 'youtu.be/' in url:
+            video_id = url.split('youtu.be/')[1].split('?')[0]
+            return f'https://www.youtube.com/embed/{video_id}'
+        return url
 
     def __str__(self):
         return f"{self.plan.member.username} - Day {self.day_of_week} - {self.title}"
@@ -126,3 +139,38 @@ class FeeTracking(models.Model):
 
     def __str__(self):
         return f"{self.member.username} - {self.due_date} - {self.status}"
+
+class WorkoutVideo(models.Model):
+    CATEGORY_CHOICES = [
+        ('Chest', 'Chest'),
+        ('Back', 'Back'),
+        ('Shoulders', 'Shoulders'),
+        ('Arms', 'Arms'),
+        ('Legs', 'Legs'),
+        ('Abs', 'Abs'),
+        ('Cardio', 'Cardio'),
+        ('Full Body', 'Full Body'),
+        ('Stretching', 'Stretching'),
+        ('Other', 'Other'),
+    ]
+    trainer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploaded_videos', limit_choices_to={'role': 'trainer'})
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    video_url = models.URLField(max_length=500, help_text="Paste a YouTube URL (e.g. https://www.youtube.com/watch?v=... or https://www.youtube.com/embed/...)")
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Other')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_embed_url(self):
+        """Convert a regular YouTube URL to an embed URL."""
+        url = self.video_url
+        if 'youtube.com/watch?v=' in url:
+            video_id = url.split('v=')[1].split('&')[0]
+            return f'https://www.youtube.com/embed/{video_id}'
+        elif 'youtu.be/' in url:
+            video_id = url.split('youtu.be/')[1].split('?')[0]
+            return f'https://www.youtube.com/embed/{video_id}'
+        return url  # Already an embed URL or other format
+
+    def __str__(self):
+        return f"{self.title} by {self.trainer.username}"
+

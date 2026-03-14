@@ -10,10 +10,10 @@ from django.forms import inlineformset_factory
 from datetime import date
 
 from accounts.models import User, UserProfile
-from fitness.models import GymGoal, MembershipPlan, NutritionPlan, WorkoutPlan, DietPlan, UserProgress, FeeTracking, OnlineWorkoutPlan, OnlineWorkoutSession, OnlineDietPlan, OnlineDietMeal
+from fitness.models import GymGoal, MembershipPlan, NutritionPlan, WorkoutPlan, DietPlan, UserProgress, FeeTracking, OnlineWorkoutPlan, OnlineWorkoutSession, OnlineDietPlan, OnlineDietMeal, WorkoutVideo
 from shop.models import Product, Category, Order
 from core.models import ContactMessage
-from .forms import AdminUserForm, AdminTrainerForm, ProductForm, CategoryForm, MembershipPlanForm, GymGoalForm, NutritionPlanForm, FeeTrackingForm, WorkoutPlanForm, DietPlanForm, OnlineWorkoutPlanForm, OnlineWorkoutSessionForm, OnlineDietPlanForm, OnlineDietMealForm, UserUpdateForm, UserProfileUpdateForm
+from .forms import AdminUserForm, AdminTrainerForm, ProductForm, CategoryForm, MembershipPlanForm, GymGoalForm, NutritionPlanForm, FeeTrackingForm, WorkoutPlanForm, DietPlanForm, OnlineWorkoutPlanForm, OnlineWorkoutSessionForm, OnlineDietPlanForm, OnlineDietMealForm, UserUpdateForm, UserProfileUpdateForm, WorkoutVideoForm
 
 @login_required
 def dashboard_home(request):
@@ -798,3 +798,52 @@ def member_pay_fee(request, fee_id):
         else:
             messages.info(request, 'This fee has already been paid.')
     return redirect('dashboard:member_dashboard')
+
+# --- WORKOUT VIDEO VIEWS ---
+@login_required
+def trainer_workout_videos(request):
+    """Trainer can view and upload workout videos."""
+    if request.user.role != 'trainer':
+        return redirect('core:home')
+
+    if request.method == 'POST':
+        form = WorkoutVideoForm(request.POST)
+        if form.is_valid():
+            video = form.save(commit=False)
+            video.trainer = request.user
+            video.save()
+            messages.success(request, f'Workout video "{video.title}" uploaded successfully!')
+            return redirect('dashboard:trainer_workout_videos')
+    else:
+        form = WorkoutVideoForm()
+
+    videos = WorkoutVideo.objects.filter(trainer=request.user).order_by('-created_at')
+    return render(request, 'dashboard/trainer/workout_videos.html', {'form': form, 'videos': videos})
+
+@login_required
+def trainer_delete_video(request, video_id):
+    """Trainer can delete their own workout videos."""
+    if request.user.role != 'trainer':
+        return redirect('core:home')
+    video = get_object_or_404(WorkoutVideo, id=video_id, trainer=request.user)
+    video.delete()
+    messages.success(request, 'Video deleted successfully.')
+    return redirect('dashboard:trainer_workout_videos')
+
+@login_required
+def member_workout_videos(request):
+    """Members can view all workout videos uploaded by trainers."""
+    if request.user.role != 'member':
+        return redirect('core:home')
+
+    category_filter = request.GET.get('category', '')
+    videos = WorkoutVideo.objects.all().order_by('-created_at')
+    if category_filter:
+        videos = videos.filter(category=category_filter)
+
+    categories = WorkoutVideo.CATEGORY_CHOICES
+    return render(request, 'dashboard/member/workout_videos.html', {
+        'videos': videos,
+        'categories': categories,
+        'selected_category': category_filter,
+    })

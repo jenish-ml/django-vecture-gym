@@ -1,0 +1,137 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block extra_css %}
+<style>
+    .upload-card {
+        background: #fff; border-radius: 16px; padding: 2rem;
+        border: 1px solid #e2e8f0; margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .upload-card h3 { font-size: 1.3rem; font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; }
+
+    .upload-form .form-row { margin-bottom: 1.25rem; }
+    .upload-form label {
+        display: block; margin-bottom: 0.4rem;
+        font-weight: 600; font-size: 0.9rem; color: #475569;
+    }
+    .upload-form input, .upload-form select, .upload-form textarea {
+        width: 100%; padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0; border-radius: 10px;
+        font-size: 0.95rem; color: #1e293b; background: #f8fafc;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .upload-form input:focus, .upload-form select:focus, .upload-form textarea:focus {
+        outline: none; border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(255, 51, 102, 0.1);
+    }
+    .upload-form .btn-upload {
+        background: linear-gradient(135deg, var(--primary), #a855f7);
+        color: #fff; border: none; padding: 0.85rem 2rem;
+        border-radius: 10px; font-weight: 700; font-size: 1rem;
+        cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .upload-form .btn-upload:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 51, 102, 0.3);
+    }
+
+    .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+    .video-card {
+        background: #fff; border-radius: 14px; overflow: hidden;
+        border: 1px solid #e2e8f0; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .video-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+    .video-card iframe { width: 100%; height: 200px; display: block; }
+    .video-card-body { padding: 1.25rem; }
+    .video-card-body h4 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 0.4rem; }
+    .video-card-body p { font-size: 0.9rem; color: #64748b; margin-bottom: 0.75rem; }
+    .video-meta { display: flex; justify-content: space-between; align-items: center; }
+    .video-category {
+        background: #f0f9ff; color: #0369a1; padding: 0.25rem 0.75rem;
+        border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+    }
+    .btn-delete {
+        background: #fee2e2; color: #dc2626; border: none; padding: 0.35rem 0.8rem;
+        border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-delete:hover { background: #fecaca; }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<h2 style="font-size: 1.6rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem;">🎬 Workout Videos</h2>
+
+{% if messages %}
+<div style="margin-bottom: 1.5rem;">
+    {% for message in messages %}
+    <div class="card" style="background: {% if message.tags == 'success' %}#f0fdf4; border-left: 4px solid #16a34a;{% else %}#fef2f2; border-left: 4px solid #dc2626;{% endif %} padding: 1rem;">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Upload Form -->
+<div class="upload-card">
+    <h3>📤 Upload New Workout Video</h3>
+    <form method="POST" class="upload-form">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-row">
+                <label for="id_title">Title</label>
+                {{ form.title }}
+            </div>
+            <div class="form-row">
+                <label for="id_category">Category</label>
+                {{ form.category }}
+            </div>
+        </div>
+        <div class="form-row">
+            <label for="id_video_url">YouTube Video URL</label>
+            {{ form.video_url }}
+            <small style="color: #94a3b8; font-size: 0.8rem;">
+                Paste any YouTube URL (e.g. https://www.youtube.com/watch?v=abc123 or https://youtu.be/abc123)
+            </small>
+        </div>
+        <div class="form-row">
+            <label for="id_description">Description (Optional)</label>
+            {{ form.description }}
+        </div>
+        <button type="submit" class="btn-upload">🚀 Upload Video</button>
+    </form>
+</div>
+
+<!-- My Uploaded Videos -->
+<div class="upload-card">
+    <h3>📚 My Uploaded Videos ({{ videos|length }})</h3>
+    {% if videos %}
+    <div class="video-grid">
+        {% for video in videos %}
+        <div class="video-card">
+            <iframe src="{{ video.get_embed_url }}" frameborder="0" allowfullscreen></iframe>
+            <div class="video-card-body">
+                <h4>{{ video.title }}</h4>
+                {% if video.description %}<p>{{ video.description }}</p>{% endif %}
+                <div class="video-meta">
+                    <span class="video-category">{{ video.category }}</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 0.8rem; color: #94a3b8;">{{ video.created_at|date:"M d, Y" }}</span>
+                        <form method="POST" action="{% url 'dashboard:trainer_delete_video' video.id %}" style="margin:0;" onsubmit="return confirm('Delete this video?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-delete">🗑️ Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+        <p style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎥</p>
+        <p>You haven't uploaded any workout videos yet. Use the form above to get started!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

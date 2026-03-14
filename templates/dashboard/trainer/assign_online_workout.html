@@ -226,9 +226,10 @@
                     {% if session_form.notes.errors %}<span style="color:#ef4444; font-size:0.78rem; display:block; margin-top:0.2rem;">{{ session_form.notes.errors|striptags }}</span>{% endif %}
                 </div>
 
-                <div class="field-item">
-                    <label>Video Upload <span class="hint">(optional)</span></label>
-                    {{ session_form.video }}
+                <div class="field-full">
+                    <label>YouTube Video URL <span class="hint">(optional — paste any YouTube link)</span></label>
+                    {{ session_form.video_url }}
+                    {% if session_form.video_url.errors %}<span style="color:#ef4444; font-size:0.78rem; display:block; margin-top:0.2rem;">{{ session_form.video_url.errors|striptags }}</span>{% endif %}
                 </div>
             </div>
         </div>
@@ -256,8 +257,8 @@
                     <div class="field-full">
                         <label>Notes &amp; Exercises</label>{{ formset.empty_form.notes }}
                     </div>
-                    <div class="field-item">
-                        <label>Video Upload</label>{{ formset.empty_form.video }}
+                    <div class="field-full">
+                        <label>YouTube Video URL</label>{{ formset.empty_form.video_url }}
                     </div>
                 </div>
             </div>

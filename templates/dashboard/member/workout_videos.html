@@ -1,0 +1,89 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block extra_css %}
+<style>
+    .filter-bar {
+        display: flex; flex-wrap: wrap; gap: 0.5rem;
+        margin-bottom: 2rem; padding: 1rem 1.5rem;
+        background: #fff; border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .filter-btn {
+        padding: 0.5rem 1.25rem; border-radius: 25px;
+        border: 1px solid #e2e8f0; background: #f8fafc;
+        color: #475569; font-size: 0.85rem; font-weight: 600;
+        cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .filter-btn:hover, .filter-btn.active {
+        background: linear-gradient(135deg, var(--primary), #a855f7);
+        color: #fff; border-color: transparent;
+    }
+
+    .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; }
+    .video-card {
+        background: #fff; border-radius: 14px; overflow: hidden;
+        border: 1px solid #e2e8f0; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .video-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+    .video-card iframe { width: 100%; height: 210px; display: block; }
+    .video-card-body { padding: 1.25rem; }
+    .video-card-body h4 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 0.4rem; }
+    .video-card-body p { font-size: 0.9rem; color: #64748b; margin-bottom: 0.75rem; line-height: 1.5; }
+    .video-meta { display: flex; justify-content: space-between; align-items: center; }
+    .video-category {
+        background: #f0f9ff; color: #0369a1; padding: 0.25rem 0.75rem;
+        border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+    }
+    .video-trainer {
+        font-size: 0.8rem; color: #94a3b8;
+    }
+    .empty-state {
+        text-align: center; padding: 4rem 2rem; color: #94a3b8;
+        background: #fff; border-radius: 16px; border: 1px solid #e2e8f0;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<h2 style="font-size: 1.6rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem;">🎬 Workout Videos</h2>
+
+<!-- Category Filter Bar -->
+<div class="filter-bar">
+    <a href="{% url 'dashboard:member_workout_videos' %}" class="filter-btn {% if not selected_category %}active{% endif %}">All</a>
+    {% for cat_value, cat_label in categories %}
+    <a href="{% url 'dashboard:member_workout_videos' %}?category={{ cat_value }}" class="filter-btn {% if selected_category == cat_value %}active{% endif %}">{{ cat_label }}</a>
+    {% endfor %}
+</div>
+
+<!-- Video Grid -->
+{% if videos %}
+<div class="video-grid">
+    {% for video in videos %}
+    <div class="video-card">
+        <iframe src="{{ video.get_embed_url }}" frameborder="0" allowfullscreen></iframe>
+        <div class="video-card-body">
+            <h4>{{ video.title }}</h4>
+            {% if video.description %}<p>{{ video.description }}</p>{% endif %}
+            <div class="video-meta">
+                <span class="video-category">{{ video.category }}</span>
+                <span class="video-trainer">
+                    By {{ video.trainer.first_name|default:video.trainer.username }} · {{ video.created_at|date:"M d, Y" }}
+                </span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p style="font-size: 3rem; margin-bottom: 0.5rem;">🎥</p>
+    <p style="font-size: 1.1rem;">
+        {% if selected_category %}
+            No workout videos found for "{{ selected_category }}". Try a different category!
+        {% else %}
+            No workout videos available yet. Your trainers will upload them soon!
+        {% endif %}
+    </p>
+</div>
+{% endif %}
+{% endblock %}

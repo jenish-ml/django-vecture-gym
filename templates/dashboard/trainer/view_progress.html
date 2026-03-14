@@ -1,17 +1,113 @@
 {% extends 'dashboard/base_dashboard.html' %}
 
+{% block extra_css %}
+<style>
+    .progress-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .progress-avatar {
+        width: 60px; height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), #a855f7);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; font-weight: 800; color: #fff;
+    }
+    .progress-name { font-size: 1.5rem; font-weight: 700; color: #1e293b; }
+    .progress-meta { font-size: 0.9rem; color: #64748b; }
+
+    .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card {
+        background: #fff; border-radius: 12px; padding: 1.5rem;
+        border: 1px solid #e2e8f0; text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+    .stat-value { font-size: 2rem; font-weight: 800; }
+    .stat-label { font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; }
+    .stat-card.weight .stat-value { color: #ef4444; }
+    .stat-card.bodyfat .stat-value { color: #3b82f6; }
+    .stat-card.muscle .stat-value { color: #10b981; }
+    .stat-card.entries .stat-value { color: #a855f7; }
+
+    .chart-container {
+        background: #fff; border-radius: 16px; padding: 2rem;
+        border: 1px solid #e2e8f0; margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .chart-title { font-size: 1.2rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; }
+
+    .log-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .log-table thead th {
+        background: #f1f5f9; color: #475569; font-size: 0.8rem;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        padding: 0.75rem 1rem; text-align: left;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .log-table tbody td {
+        padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9;
+        font-size: 0.95rem; color: #334155;
+    }
+    .log-table tbody tr:hover { background: #f8fafc; }
+
+    .plan-section { margin-bottom: 2rem; }
+    .plan-section-title {
+        font-size: 1.1rem; font-weight: 700; padding: 0.75rem 1.25rem;
+        border-radius: 10px 10px 0 0; color: #fff;
+    }
+    .plan-section-title.workout { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+    .plan-section-title.diet { background: linear-gradient(135deg, #10b981, #059669); }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<div class="card" style="margin-bottom: 2rem;">
-    <h3>Progress Chart for {{ member.first_name }} {{ member.last_name }}</h3>
-    <div style="height: 400px; margin-top: 2rem;">
+<!-- Header -->
+<div class="progress-header">
+    <div class="progress-avatar">{{ member.first_name|first|upper }}</div>
+    <div>
+        <div class="progress-name">{{ member.first_name }} {{ member.last_name }}</div>
+        <div class="progress-meta">
+            @{{ member.username }} · {{ member.get_member_type_display|default:"Offline" }} Member
+            {% if member.profile.fitness_goal %} · 🎯 {{ member.profile.fitness_goal.name }}{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stat Cards -->
+<div class="stat-cards">
+    <div class="stat-card weight">
+        <div class="stat-value">{% if logs %}{{ logs.0.weight }}{% else %}--{% endif %}</div>
+        <div class="stat-label">Latest Weight (kg)</div>
+    </div>
+    <div class="stat-card bodyfat">
+        <div class="stat-value">{% if logs and logs.0.body_fat_percentage %}{{ logs.0.body_fat_percentage }}%{% else %}--{% endif %}</div>
+        <div class="stat-label">Body Fat %</div>
+    </div>
+    <div class="stat-card muscle">
+        <div class="stat-value">{% if logs and logs.0.muscle_mass_kg %}{{ logs.0.muscle_mass_kg }}{% else %}--{% endif %}</div>
+        <div class="stat-label">Muscle Mass (kg)</div>
+    </div>
+    <div class="stat-card entries">
+        <div class="stat-value">{{ logs|length }}</div>
+        <div class="stat-label">Total Entries</div>
+    </div>
+</div>
+
+<!-- Progress Chart -->
+<div class="chart-container">
+    <div class="chart-title">📈 Progress Over Time</div>
+    <div style="height: 350px;">
         <canvas id="progressChart"></canvas>
     </div>
 </div>
 
-<div class="card">
-    <h3 style="margin-bottom: 1.5rem;">Detailed Logs</h3>
+<!-- Detailed Logs -->
+<div class="chart-container">
+    <div class="chart-title">📋 Detailed Progress Logs</div>
     <div class="table-responsive">
-        <table>
+        <table class="log-table">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -24,15 +120,15 @@
             <tbody>
                 {% for log in logs %}
                 <tr>
-                    <td>{{ log.date|date:"M d, Y" }}</td>
+                    <td><strong>{{ log.date|date:"M d, Y" }}</strong></td>
                     <td>{{ log.weight }}</td>
                     <td>{{ log.body_fat_percentage|default:"--" }}</td>
                     <td>{{ log.muscle_mass_kg|default:"--" }}</td>
-                    <td>{{ log.notes }}</td>
+                    <td style="max-width: 200px; white-space: pre-wrap; font-size: 0.85rem; color: #64748b;">{{ log.notes|default:"--" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" style="text-align: center;">No progress logged yet.</td>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: #94a3b8;">No progress logged yet for this member.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -40,71 +136,80 @@
     </div>
 </div>
 
-<!-- Advanced Online Plans -->
+<!-- Assigned Online Workout -->
 {% if latest_online_workout %}
-<div class="card" style="margin-bottom: 2rem;">
-    <h3 style="margin-bottom: 1.5rem; color: var(--primary);">
-        Assigned Online Workout Schedule (Week of {{ latest_online_workout.week_start_date|date:"M d, Y" }})
-    </h3>
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>Day</th>
-                    <th>Time Slot</th>
-                    <th>Title</th>
-                    <th>Notes</th>
-                    <th>Video</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for session in latest_online_workout.sessions.all|dictsort:"day_of_week" %}
-                <tr>
-                    <td>Day {{ session.day_of_week }}</td>
-                    <td>{{ session.time_slot }}</td>
-                    <td style="font-weight: 600;">{{ session.title }}</td>
-                    <td style="white-space: pre-wrap; font-size: 0.9rem;">{{ session.notes }}</td>
-                    <td>
-                        {% if session.video %}
-                            <a href="{{ session.video.url }}" target="_blank" class="badge" style="background: rgba(56,189,248,0.2); color: #38bdf8; text-decoration: none;">Watch Video</a>
-                        {% else %}
-                            <span style="color: var(--text-muted);">None</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="plan-section">
+    <div class="plan-section-title workout">
+        💪 Assigned Online Workout Schedule (Week of {{ latest_online_workout.week_start_date|date:"M d, Y" }})
+    </div>
+    <div class="chart-container" style="border-radius: 0 0 16px 16px; margin-top: 0; border-top: none;">
+        <div class="table-responsive">
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Time Slot</th>
+                        <th>Title</th>
+                        <th>Notes</th>
+                        <th>Video</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in latest_online_workout.sessions.all|dictsort:"day_of_week" %}
+                    <tr>
+                        <td><strong>Day {{ session.day_of_week }}</strong></td>
+                        <td>{{ session.time_slot|default:"--" }}</td>
+                        <td style="font-weight: 600;">{{ session.title }}</td>
+                        <td style="white-space: pre-wrap; font-size: 0.85rem; color: #64748b;">{{ session.notes|default:"--" }}</td>
+                        <td>
+                            {% if session.video_url %}
+                                <iframe width="200" height="115" src="{{ session.get_embed_url }}" frameborder="0" allowfullscreen style="border-radius: 8px;"></iframe>
+                            {% else %}
+                                <span style="color: #94a3b8;">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endif %}
 
+<!-- Assigned Online Diet -->
 {% if latest_online_diet %}
-<div class="card" style="margin-bottom: 2rem;">
-    <h3 style="margin-bottom: 1.5rem; color: #10b981;">
-        Assigned Online Diet Schedule (Week of {{ latest_online_diet.week_start_date|date:"M d, Y" }})
-    </h3>
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>Day</th>
-                    <th>Meal Type</th>
-                    <th>Time Slot</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for meal in latest_online_diet.meals.all|dictsort:"day_of_week" %}
-                <tr>
-                    <td>Day {{ meal.day_of_week }}</td>
-                    <td><span class="badge" style="background: rgba(255,255,255,0.1); color: #f8fafc;">{{ meal.meal_type }}</span></td>
-                    <td>{{ meal.time_slot }}</td>
-                    <td style="white-space: pre-wrap; font-size: 0.9rem;">{{ meal.description }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="plan-section">
+    <div class="plan-section-title diet">
+        🥗 Assigned Online Diet Schedule (Week of {{ latest_online_diet.week_start_date|date:"M d, Y" }})
+    </div>
+    <div class="chart-container" style="border-radius: 0 0 16px 16px; margin-top: 0; border-top: none;">
+        <div class="table-responsive">
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Meal Type</th>
+                        <th>Time Slot</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for meal in latest_online_diet.meals.all|dictsort:"day_of_week" %}
+                    <tr>
+                        <td><strong>Day {{ meal.day_of_week }}</strong></td>
+                        <td>
+                            <span style="background: #f0fdf4; color: #16a34a; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                                {{ meal.meal_type }}
+                            </span>
+                        </td>
+                        <td>{{ meal.time_slot|default:"--" }}</td>
+                        <td style="white-space: pre-wrap; font-size: 0.9rem;">{{ meal.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endif %}
@@ -116,29 +221,44 @@
         datasets: [{
             label: 'Weight (kg)',
             data: [{% for log in reversed_logs %}{{ log.weight|default:"null" }},{% endfor %}],
-            borderColor: '#FF3366',
-            backgroundColor: 'rgba(255, 51, 102, 0.1)',
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.08)',
             borderWidth: 3,
-            fill: false,
-            tension: 0.4
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#ef4444',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7
         },
         {
             label: 'Body Fat (%)',
             data: [{% for log in reversed_logs %}{{ log.body_fat_percentage|default:"null" }},{% endfor %}],
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.08)',
             borderWidth: 3,
-            fill: false,
-            tension: 0.4
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#3b82f6',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7
         },
         {
             label: 'Muscle Mass (kg)',
             data: [{% for log in reversed_logs %}{{ log.muscle_mass_kg|default:"null" }},{% endfor %}],
             borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
             borderWidth: 3,
-            fill: false,
-            tension: 0.4
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7
         }]
     };
 
@@ -149,10 +269,24 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { labels: { color: '#f8fafc' } },
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#334155',
+                        font: { size: 13, weight: '600' },
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 20
+                    }
+                },
                 tooltip: {
                     mode: 'index',
-                    intersect: false
+                    intersect: false,
+                    backgroundColor: '#1e293b',
+                    titleFont: { size: 13, weight: '700' },
+                    bodyFont: { size: 12 },
+                    cornerRadius: 10,
+                    padding: 14
                 }
             },
             interaction: {
@@ -161,8 +295,14 @@
                 intersect: false
             },
             scales: {
-                x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                x: {
+                    ticks: { color: '#64748b', font: { size: 12 } },
+                    grid: { color: '#f1f5f9', drawBorder: false }
+                },
+                y: {
+                    ticks: { color: '#64748b', font: { size: 12 } },
+                    grid: { color: '#f1f5f9', drawBorder: false }
+                }
             }
         }
     });

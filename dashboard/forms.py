@@ -126,7 +126,7 @@ class OnlineWorkoutPlanForm(forms.ModelForm):
 class OnlineWorkoutSessionForm(forms.ModelForm):
     class Meta:
         model = OnlineWorkoutSession
-        fields = ['day_of_week', 'time_slot', 'title', 'notes', 'video']
+        fields = ['day_of_week', 'time_slot', 'title', 'notes', 'video_url']
         widgets = {
             'time_slot': forms.TimeInput(attrs={'type': 'time'}),
             'notes': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Write notes with bullet points for easiest reading...'}),
@@ -164,3 +164,15 @@ class UserProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['image']
+
+from fitness.models import WorkoutVideo
+
+class WorkoutVideoForm(forms.ModelForm):
+    class Meta:
+        model = WorkoutVideo
+        fields = ['title', 'description', 'video_url', 'category']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Brief description of this workout video...'}),
+            'video_url': forms.URLInput(attrs={'placeholder': 'https://www.youtube.com/watch?v=...'}),
+        }
+

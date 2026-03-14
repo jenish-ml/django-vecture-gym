@@ -150,8 +150,10 @@
                     <td style="font-weight: 600;">{{ session.title }}</td>
                     <td style="white-space: pre-wrap; font-size: 0.9rem; color: var(--text-muted);">{{ session.notes }}</td>
                     <td>
-                        {% if session.video %}
-                            <a href="{{ session.video.url }}" target="_blank" class="badge bg-success" style="text-decoration: none;">▶ Watch</a>
+                        {% if session.video_url %}
+                            <div style="margin-top: 0.5rem;">
+                                <iframe width="220" height="130" src="{{ session.get_embed_url }}" frameborder="0" allowfullscreen style="border-radius: 8px;"></iframe>
+                            </div>
                         {% else %}
                             <span style="color: var(--text-muted);">—</span>
                         {% endif %}
